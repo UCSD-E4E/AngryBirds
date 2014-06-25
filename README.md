@@ -56,7 +56,7 @@ node app
 
 TODO
 ====
-- [ ] Update installation isntructions
+- [ ] Update installation instructions
 - [ ] Add in images for project
 
 
