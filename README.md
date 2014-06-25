@@ -7,7 +7,7 @@ Core Contributors
   - Angela To
   - Dustin Mendoza
   - Traci Takasugi
-  - Luke Dluccia
+  - Luke DeLuccia
 
 Objectives
 ==========
