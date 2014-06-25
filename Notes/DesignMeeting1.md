@@ -26,4 +26,3 @@ BBB Notes
 * uname : ubuntu
 * pwd : temppwd
 * root@192.168.7.2 (default IP)
-* 
