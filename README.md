@@ -1,6 +1,5 @@
 Angry Birds
 =========
----
 
 Core Contributors
 =================
@@ -27,10 +26,13 @@ Version
 Tech
 -----------
 
-Angry Birds uses a number of open source projects to work properly:
+Angry Birds uses a number of open source projects and tech to work properly:
 
 * [Dillinger] - awesome online markdown editor
 * [SublimeText2] - awesome editor with code folding and other good stuff
+* [Beagle Bone Black] - Awesome microcontroller
+* [Ubuntu] - 14.04 
+* [OpenCV] - Computer Vision used to store the images
 
 Installation
 --------------
@@ -71,3 +73,4 @@ MIT
 [Beagle Bone Black]:http://beagleboard.org/Products/BeagleBone+Black
 [Dillinger]:http://dillinger.io/
 [SublimeText2]:http://www.sublimetext.com/
+[OpenCV]:http://opencv.org/
