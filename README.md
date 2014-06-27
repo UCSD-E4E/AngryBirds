@@ -12,16 +12,19 @@ Objectives
 ==========
 
 Angry Birds is a project which aims to do the following:
-
+asdfasdf
   - Detect if a bird has flown into a window
   - Record video footage of the crash
   - Record other data such as speed and/or force
   - Upload data to a database for further examination
 
 Version
-----
+-------
 
 1.0 - Starting version of project
+
+Detailed Specifications
+-----------------------
 
 Tech
 -----------
@@ -37,9 +40,10 @@ Angry Birds uses a number of open source projects and tech to work properly:
 Installation
 --------------
 
-
+On the Beagle Bone Board update the repos (it WILL take a while and look like it stalls but don't worry, it's updating)
 
 ```sh
+sudo apt-get update
 git clone [git-repo-url] angrybirds
 cd angrybirds
 npm i -d
@@ -60,7 +64,8 @@ TODO
 ====
 - [ ] Update installation instructions
 - [ ] Add in images for project
-
+- [ ] Purchase piezo electric sensors
+- [ ] 
 
 License
 ----
