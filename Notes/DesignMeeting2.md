@@ -40,7 +40,7 @@ Discussion
 * 
 
 
-[CrocPic1]:../SDzoo_photos/IMG_2932.JPG "Crocodile Window"
+[CrocPic1]:../SDzoo_photos1/Gharial/IMG_2932.JPG "Crocodile Window"
 
 
 
