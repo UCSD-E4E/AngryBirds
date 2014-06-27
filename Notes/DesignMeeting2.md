@@ -33,9 +33,11 @@ We met with the San Diego Zoo and checked out the various sites that we will ins
   - Exhibit observation area is a gazebo-like enclosing with multiple window panes to observe the crocodiles. There are four pillars holding up the roof, one of which is exposed to sunlight and is in the perfect location to observe the window panes. Only a fraction of the pillar is left uncovered; a small rectangular area on the top of the pillar is open, which includes the corner of the pillar closest to the window panes. Therefore, the design of the monitoring unit may need to be custom-built to fit the open area of the pillar so that it is not conspicuous and does not look unnatural in its position.
 
 * SEA 
+	![alt text][SEApic1]	
   - The windows of interest are tall and isolated from guest-accessible areas. Currently, they have a visible film covering that effectively decreases bird collisions, but the film should be replaced soon, and the zoo would like to consider a non-visible option. Lemurs and monkeys are unlikely to contact the window from the inside. There is a roof that covers the interior and slightly overhangs on the exterior, so the cameras would at least be partially protected from weather elements. The roof also provides opportunities for mounting. Distance and vegetation between the windows and the walkway limit the visibility to guests.
 
 * Orangutan
+	![alt text][OrangutanPic1]		
   - This exhibit area has high window panes that extend from the ground up to the enclosure cieling. There are no railings or immediate protection of the glass that separates guests from the window panes. There are a lot of trees and shrubbery inside the exhibit which may mean that this is a high collision site as birds tend to fly along level of vegetation. Thus, in order to mitigate the number of collisions, zoo keepers have placed bird decals on the window panes to indicate the presence of the glass. This site is feasible and the number of trees along the enclosure may allow us to mount and camoflage our system so that it would not be plainly visible to guests yet enable the cameras a full view of the window panes
 
 
@@ -46,11 +48,9 @@ Discussion
 
 [RattleSnakeExhibit]:../SDzoo_photos1/Rattlesnake_photos/RattleSnakeExhibit.JPG "Rattle Snake Panorama"
 [CrocPic1]:../SDzoo_photos1/Gharial_photos/IMG_2932.JPG "Crocodile Window"
-<<<<<<< HEAD
 [CondorExhibit]:../SDzoo_photos1/Condor_photos/CondorExhibit.JPG "Condor Panorama"
-=======
 [TurtlePic1]:../SDzoo_photos1/TurtleFrog_photos/IMG_2890.JPG "Turtle Window"
-
-
+[OrangutanPic1]:../SDzoo_photos1/Orangutan_photos/IMG_2912.JPG "Orangutan Picture"
+[SEApic1]:../SDzoo_photos1/SEAmonkey_photos/IMG_2903.JPG "SEA pic"
 
 
