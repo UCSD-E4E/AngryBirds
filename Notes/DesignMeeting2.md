@@ -17,6 +17,8 @@ We met with the San Diego Zoo and checked out the various sites that we will ins
   - On the first site (Condor) we found out that there are multiple panels, rather than just one, that we have to monitor for bird collision. This means that we have to reassess if we should use a single enclosure for each panel or if we should have our sensors across several panels with a single camera pointing to them. We will also have to find a way to power our system since the location is not ideal for solar collection. By dividing up the power system, camera, and sensor array we can effectively cover the site using only 3 systems. There are 8 panels that are approximately 10-11 feet high and 5-6 feet wide.
 
 * Rattle Snake
+    ![alt text][RattleSnakeExhibit]
+
   - Exhibit observation area is outdoors, while the actual rattle snake exhibit is a hexagon-shaped area with most of the walls containing different numbers of window panes. There are two large posts on either side of the exhibit about 25 feet away from the panes that could be used to mount the cameras and observe all sides of the exhibit. Since the area in between the posts and the exhibit is a high-traffic area, there is not much of a possibility of running wires along the ground to connect the sensors to the main controller or cameras on the posts. Therefore, there may be a need for some sort of wireless communication between the sensors on the panes and the camera/controller on the posts. While the posts are in direct sunlight, one side of the exhibit is shaded by a tree. Therefore, more observations of the area may be needed in order to develop an effective design. 
 
 * Turtle area
@@ -41,6 +43,7 @@ Discussion
 
 
 [CrocPic1]:../SDzoo_photos/IMG_2932.JPG "Crocodile Window"
+[RattleSnakeExhibit]:../SDzoo_photos1/Rattlesnake_photos/RattleSnakeExhibit.JPG "Rattle Snake Panorama"
 
 
 
