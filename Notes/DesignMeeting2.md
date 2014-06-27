@@ -14,6 +14,7 @@ Design Overview
 We met with the San Diego Zoo and checked out the various sites that we will install the enclosure and mechanisms. After looking at each site we found that each deployment will have to vary depending of the site due to the different conditions of each. The following is a list of each site with accompnaying phot descriptions:
 
 * Condor
+  - On the first site (Condor) we found out that there are multiple panels, rather than just one, that we have to monitor for bird collision. This means that we have to reassess if we should use a single enclosure for each panel or if we should have our sensors across several panels with a single camera pointing to them. We will also have to find a way to power our system since the location is not ideal for solar collection. By dividing up the power system, camera, and sensor array we can effectively cover the site using only 3 systems. There are 8 panels that are approximately 10-11 feet high and 5-6 feet wide.
 
 * Rattle Snake
 
@@ -29,7 +30,7 @@ We met with the San Diego Zoo and checked out the various sites that we will ins
 
 Discussion
 ----------
-* On the first site (Condor) we found out that there are multiple panels, rather than just one, that we have to monitor for bird collision. This means that we have to reassess if we should use a single enclosure for each panel or if we should have our sensors across several panels with a single camera pointing to them. We will also have to find a way to power our system since the location is not ideal for solar collection. By dividing up the power system, camera, and sensor array we can effectively cover the site using only 3 systems. There are 8 panels that are approximately 10-11 feet high and 5-6 feet wide. 
+*  
 * 
 
 
