@@ -63,7 +63,7 @@ TODO
 ====
 - [ ] Update installation instructions
 - [ ] Add in images for project
-- [ ] Purchase piezo electric sensors
+- [x] Purchase piezo electric sensors
 - [ ] 
 
 License
