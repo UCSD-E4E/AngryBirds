@@ -24,6 +24,7 @@ We met with the San Diego Zoo and checked out the various sites that we will ins
   - Exhibit observation area is outdoors, while the actual rattle snake exhibit is a hexagon-shaped area with most of the walls containing different numbers of window panes. There are two large posts on either side of the exhibit about 25 feet away from the panes that could be used to mount the cameras and observe all sides of the exhibit. Since the area in between the posts and the exhibit is a high-traffic area, there is not much of a possibility of running wires along the ground to connect the sensors to the main controller or cameras on the posts. Therefore, there may be a need for some sort of wireless communication between the sensors on the panes and the camera/controller on the posts. While the posts are in direct sunlight, one side of the exhibit is shaded by a tree. Therefore, more observations of the area may be needed in order to develop an effective design. 
 
 * Turtle area
+	![alt text][TurtlePic1]
   - Unlike the other exhibits, this exhibit's window panes are short in height and long in width; each pane is around 4' high and 9' wide. The main area of interest is only a couple panes wide and is a high traffic area for zoo visitors. Therefore, the system we put in place must be out of reach from adults and children observing the exhibit. Ideally, the system would also be out of sight from visitors, although there are limited areas to place the system. Any cables that run from the main controller to the sensors on the window panes can run along the inside of the panes inside the exhibit as long as they are inconspicuous and immune to a bite from a turtle. There are very few places to put the main controller, so more observations in the area are needed before a design can be developed. 
 
 * Crocodiles 
@@ -43,14 +44,14 @@ Discussion
 *  
 * 
 
-
-<<<<<<< HEAD
-[CrocPic1]:../SDzoo_photos/IMG_2932.JPG "Crocodile Window"
 [RattleSnakeExhibit]:../SDzoo_photos1/Rattlesnake_photos/RattleSnakeExhibit.JPG "Rattle Snake Panorama"
-=======
 [CrocPic1]:../SDzoo_photos1/Gharial_photos/IMG_2932.JPG "Crocodile Window"
+<<<<<<< HEAD
 >>>>>>> FETCH_HEAD
 [CondorExhibit]:../SDzoo_photos1/Condor_photos/CondorExhibit.JPG "Condor Panorama"
+=======
+[TurtlePic1]:../SDzoo_photos1/TurtleFrog_photos/IMG_2890.JPG "Turtle Window"
+>>>>>>> FETCH_HEAD
 
 
 
