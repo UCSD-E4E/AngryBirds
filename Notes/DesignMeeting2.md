@@ -27,6 +27,8 @@ We met with the San Diego Zoo and checked out the various sites that we will ins
 * SEA 
 
 * Orangutan
+  - This exhibit area has high window panes that extend from the ground up to the enclosure cieling. There are no railings or immediate protection of the glass that separates guests from the window panes. There are a lot of trees and shrubbery inside the exhibit which may mean that this is a high collision site as birds tend to fly along level of vegetation. Thus, in order to mitigate the number of collisions, zoo keepers have placed bird decals on the window panes to indicate the presence of the glass. This site is feasible and the number of trees along the enclosure may allow us to mount and camoflage our system so that it would not be plainly visible to guests yet enable the cameras a full view of the window panes
+
 
 Discussion
 ----------
