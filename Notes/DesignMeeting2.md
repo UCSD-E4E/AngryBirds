@@ -47,11 +47,9 @@ Discussion
 [RattleSnakeExhibit]:../SDzoo_photos1/Rattlesnake_photos/RattleSnakeExhibit.JPG "Rattle Snake Panorama"
 [CrocPic1]:../SDzoo_photos1/Gharial_photos/IMG_2932.JPG "Crocodile Window"
 <<<<<<< HEAD
->>>>>>> FETCH_HEAD
 [CondorExhibit]:../SDzoo_photos1/Condor_photos/CondorExhibit.JPG "Condor Panorama"
 =======
 [TurtlePic1]:../SDzoo_photos1/TurtleFrog_photos/IMG_2890.JPG "Turtle Window"
->>>>>>> FETCH_HEAD
 
 
 
