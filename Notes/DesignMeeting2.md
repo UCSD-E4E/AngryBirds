@@ -42,8 +42,12 @@ Discussion
 * 
 
 
+<<<<<<< HEAD
 [CrocPic1]:../SDzoo_photos/IMG_2932.JPG "Crocodile Window"
 [RattleSnakeExhibit]:../SDzoo_photos1/Rattlesnake_photos/RattleSnakeExhibit.JPG "Rattle Snake Panorama"
+=======
+[CrocPic1]:../SDzoo_photos1/Gharial_photos/IMG_2932.JPG "Crocodile Window"
+>>>>>>> FETCH_HEAD
 
 
 
