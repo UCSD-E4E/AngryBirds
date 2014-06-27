@@ -12,7 +12,6 @@ Objectives
 ==========
 
 Angry Birds is a project which aims to do the following:
-asdfasdf
   - Detect if a bird has flown into a window
   - Record video footage of the crash
   - Record other data such as speed and/or force
