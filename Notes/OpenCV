@@ -1,6 +1,6 @@
 OpenCV Notes
 
-6/30/14
+6/30/14 12:00pm
 - OpenCV only supports a specific type of COMPRESSED video format
     - Webcams we bought only have uncompressed YUYV format
         - Either need to explore the depths of OpenCV or
@@ -11,3 +11,7 @@ OpenCV Notes
     - I420
     - GBRG
 
+6/30/14 2:00pm
+- Completely disregard first part of this note
+    - The webcams we bought work on an actual linux operating system
+    - They DO NOT work on virtual machines
