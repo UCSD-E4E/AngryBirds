@@ -1,8 +1,13 @@
 OpenCV Notes
 
 6/30/14
-- OpenCV only supports a specific type of video format
+- OpenCV only supports a specific type of COMPRESSED video format
     - Webcams we bought only have uncompressed YUYV format
         - Either need to explore the depths of OpenCV or
         - Buy better cameras >>>
+- OpenCV does not allow uncompressed file types, which include:
+    - YUYV
+    - IUYV
+    - I420
+    - GBRG
 
