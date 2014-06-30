@@ -1,5 +1,6 @@
 Power Management Notes
 
+6/30/14
 - mBed microcontroller has an RTC built in, but obviously needs an exteranl 3V battery for constant power supply
   - Possible solutions: - configure RTC before installation to have current time on it, power it up with the solar power, and keep it powered up permanently
                         - just use a sequential timer in order to turn the system on/off after a certain number of hours 
