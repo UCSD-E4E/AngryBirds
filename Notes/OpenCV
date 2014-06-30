@@ -1,1 +1,8 @@
 OpenCV Notes
+
+6/30/14
+- OpenCV only supports a specific type of video format
+    - Webcams we bought only have uncompressed YUYV format
+        - Either need to explore the depths of OpenCV or
+        - Buy better cameras >>>
+
