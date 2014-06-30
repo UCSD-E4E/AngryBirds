@@ -4,12 +4,9 @@ LDFLAGS= `pkg-config --libs opencv`
 
 all: main
 
-main: main.o
-	$(GCC) $(CFLAGS) main.o $(LDFLAGS)
-
-main.o: main.cpp
-	$(GCC) $(CFLAGS) main.cpp 
+main: main.cpp
+	$(GCC) $(CFLAGS) main.cpp $(LDFLAGS) -o main
 
 
 clean:
-	rm -f main main.o
+	rm -f main
