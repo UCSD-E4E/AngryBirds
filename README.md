@@ -33,38 +33,34 @@ Angry Birds uses a number of open source projects and tech to work properly:
 * [Dillinger] - awesome online markdown editor
 * [SublimeText2] - awesome editor with code folding and other good stuff
 * [Beagle Bone Black] - Awesome microcontroller
-* [Ubuntu] - 14.04 
-* [OpenCV] - Computer Vision used to store the images
+* [Ubuntu] - V14.04 
+* [OpenCV] - V2.4 Computer Vision used to store the images
 
 Installation
 --------------
 
-On the Beagle Bone Board update the repos (it WILL take a while and look like it stalls but don't worry, it's updating)
+On a development computer with Ubuntu installed run:
 
 ```sh
 sudo apt-get update
-git clone [git-repo-url] angrybirds
+git clone https://github.com/UCSD-E4E/AngryBirds.git angrybirds
 cd angrybirds
-npm i -d
-mkdir -p public/files/{md,html,pdf}
 ```
 
-##### Configure Plugins. Instructions in following README.md files
-
-* plugins/dropbox/README.md
-* plugins/github/README.md
-* plugins/googledrive/README.md
+If you have not installed openCV run:
 
 ```sh
-node app
+sudo apt-get install libopencv-dev
 ```
+
+TODO: sample to test if camera and setup working
 
 TODO
 ====
-- [ ] Update installation instructions
-- [ ] Add in images for project
+- [x] Update installation instructions
+- [x] Add in images for project
 - [x] Purchase piezo electric sensors
-- [ ] 
+- [ ] Add sample 
 
 License
 ----
