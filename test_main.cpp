@@ -1,5 +1,5 @@
 /* Filename: test_main.cpp
- * Author(s):  
+ * Author(s):
  * Date: 8/8/14
  */
 
@@ -51,16 +51,16 @@ int main()
     ---------------------------------------------------*/
     Mat     frame;
     queue   <Mat> frames;
-    deque   <int> sensor_signal;   
-    deque   <int> averaged_signal;       // DUSTIN 
-    struct  stat st;               
+    deque   <int> sensor_signal;
+    deque   <int> averaged_signal;       // DUSTIN
+    struct  stat st;
     string  vid_id;
     float   average_signal  = 0;
-    float   normal_signal   = 0;        
+    float   normal_signal   = 0;
     int     frame_count     = 0;         // For Testing Purposes
-    int     test_count      = 0;         // For Testing Purposes 
+    int     test_count      = 0;         // For Testing Purposes
     int     max_count       = 50;        // For Testing Purposes
-    int     limit           = PRETIME;  
+    int     limit           = PRETIME;
     bool    save            = false;
     bool    detected        = false;
     bool    collision       = false;
@@ -145,7 +145,7 @@ int main()
                 }
             }
 
-            if (detected) {collision = true; }
+            if (detected) { collision = true; }
 
             if (DEBUG) {cout << "\nCREATING VIDEO\n" << endl;}
 
@@ -173,6 +173,7 @@ int main()
                 frames.pop();
                 frame_count += 1;
             }
+            
             frame_count = 0;
 
             if (DEBUG) {cout << "\nDONE WRITING\n" << endl;}
@@ -199,6 +200,7 @@ int main()
 /* Description: Creates a new directory to store footage if
  *              it doesn't exist
  */
+<<<<<<< HEAD
 void create_directory(const char *path, struct stat &st) 
 {
     if(stat(path, &st) != 0) 
@@ -217,7 +219,7 @@ void create_directory(const char *path, struct stat &st)
 /* Description: Returns the current system time
  * Note: time portion of datetime stamp is formated as
  *       HOUR_MINUTE_SEC because colons are considered a invalid
- *       character in naming files. 
+ *       character in naming files.
  */
 string get_date()
 {
@@ -225,7 +227,7 @@ string get_date()
     struct tm *timeinfo;
     char buffer[80];
 
-    time(&rawtime);  
+    time(&rawtime);
     timeinfo = localtime(&rawtime);
     strftime(buffer, 80, "%F %H_%M_%S", timeinfo);
     return(string(buffer));
@@ -234,9 +236,9 @@ string get_date()
 /* Description: Creates a new ID to name output video file
  *              in format "Year-Month-Day Hour_Minute_Second"
  */
-string create_id(const char *path, bool collision) 
+string create_id(const char *path, bool collision)
 {
-    if (collision) 
+    if (collision)
     {
         return (path + get_date() + ".avi");
     }
@@ -245,3 +247,4 @@ string create_id(const char *path, bool collision)
 }
 
 //-----EOF-----
+

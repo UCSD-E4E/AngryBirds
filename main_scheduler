@@ -1,8 +1,7 @@
-#! /bin/bash 
+#! /bin/bash
 
-sudo ./test_main&
+./test_main&
 PID=$!
 echo $PID
-sleep 7200
-kill $PID 
-
+sleep 120       # 14400 SEC = 4 HRS
+kill $PID
