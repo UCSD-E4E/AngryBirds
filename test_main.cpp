@@ -25,12 +25,12 @@ using namespace std;
 /*-------------------------------------------------
              PREPROCESSOR CONSTANTS
   -------------------------------------------------*/
-#define DEBUG	         true        
-#define PRETIME	         50	   
-#define POSTTIME         100    
+#define DEBUG	         false 
+#define PRETIME	         100	   
+#define POSTTIME         1200   
 #define FPS 	         20
-#define X_RESOLUTION     800    	 
-#define Y_RESOLUTION     600    
+#define X_RESOLUTION     352    	 
+#define Y_RESOLUTION     288    
 #define WINDOW_SIZE      0       
 #define GROUND_THRESHOLD 0  
 #define TEST_THRESHOLD   700 
@@ -139,13 +139,15 @@ int main()
                 if (detected)
                 { 
                     cout << "\nEVENT TRIGGERED!\n" << endl;
-                    collision = true;
+                    //collision = true;
                 }
                 else 
                 {
                     cout << "\nSAVING SCHEDULED NON-COLLISON CLIP\n" << endl;
                 }
             }
+
+            if (detected) {collision = true; }
 
             if (DEBUG) {cout << "\nCREATING VIDEO\n" << endl;}
 
