@@ -186,13 +186,15 @@ int main()
             // while we are writing the current queue of frames to the ouput
             // file  
 	    //!!thread update_thread(update_frames, frames, frame, limit); 
-            pthread_create(&update_thread,
+            thread_ret = pthread_create(&update_thread,
                                         NULL,
                                         update_frames,
                                         (void*)&update_args);
 
+            cout << "\nTHREAD RET: \n" << thread_ret << endl;
+
             // Check whether we can create the new thread
-            if (!thread_ret)
+            if (thread_ret)
             {
                 cout << "\nERROR CREATING THREAD\n" << endl;
                 exit(EXIT_FAILURE);
