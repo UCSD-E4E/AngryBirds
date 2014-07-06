@@ -1,5 +1,7 @@
 /* Filename: test_main.cpp
- * Author(s):
+ * Author(s): Angela To, 
+ *            Dustin Mendoza, 
+ *            Ali Khomadari
  * Date: 8/8/14
  */
 
@@ -39,7 +41,6 @@ using namespace std;
 #define TEST_THRESHOLD   700
 
 
-
 /*-----------------------------------------------------
               FUNCTION PROTPOTYPES
   -----------------------------------------------------*/
@@ -54,7 +55,6 @@ struct write_struct{
     bool collision;
     int frame_count;
 };
-
 // Path to save video files
 const char *path = "/home/ubuntu/AngryBirds/SDCard/videos/";
 // Struct required to check the status of video directory
@@ -62,8 +62,9 @@ struct  stat st;
 
 
 
+
 int main(){
-  cout << "HERE!" << endl;
+  cout << "\n\n ----COMPILE23---- \n\n" << endl;
 
   /*---------------------------------------------------
           VARIABLE DECLARATIONS / INITIALIZATION
@@ -86,10 +87,10 @@ int main(){
 
     // Get the input from adc
     BlackADC *test_adc = new BlackADC(AIN4);
-
-    cout << "start of program!" << endl;
-
-    write_struct *write_args = (write_struct *) malloc(sizeof(struct write_struct));
+    // Declare an instance of the struct containing threading arguments
+    write_struct write_args;
+//    write_struct *write_args;
+//    write_args = (write_struct *)malloc(sizeof(write_struct));
 
   /*---------------------------------------------------
        FRAME CAPTURE/STORAGE + COLLISION DETECTION
@@ -113,8 +114,10 @@ int main(){
         if(frames.size() >= limit){
 	    frames.pop();
             frames.push(frame.clone());
+            test_count++;
         } else {
             frames.push(frame.clone());
+            test_count++;
         }
 
         // Open file to write signal data
@@ -127,14 +130,8 @@ int main(){
         // changed). Flag if particular signal exceeds test threshold
         // otherwise, proceed with continuous footage capture 
         if (
-/*
-	#ifdef ADC
 	(test_adc->getNumericValue() > TEST_THRESHOLD) ||
-	#endif
-*/
         (test_count >= max_count)){
-/*
-            #ifdef ADC
             if (test_adc->getNumericValue() > TEST_THRESHOLD){
                  detected = true;
                  collision = true;
@@ -142,40 +139,43 @@ int main(){
                  signals << test_adc->getNumericValue();
                  signals << "\n";
              }
-		#endif
-*/
              save = true;
 	     limit = POSTTIME;
         }
 
 	#ifdef DEBUG
-        cout << "TEST_COUNT: " << test_count << endl;
-        cout << "FRAME SIZE: " << frames.size() << endl;
-        cout << "SAVE: " << save << endl;
-		#endif
+        cout << "STORING FRAME: " << test_count << endl;
+        cout << "QUEUE SIZE: " << frames.size() << endl;
+        cout << "SAVE TRIGGERED: " << save << endl;
+        #endif
 
         // Event detected, save queue to write to output file
         if((save) && (frames.size() >= limit)){
-			#ifdef DEBUG
+	    #ifdef DEBUG
             if (detected){
             	cout << "\nEVENT TRIGGERED!\n" << endl;
                 collision = true;
             } else {
             	cout << "\nSAVING SCHEDULED NON-COLLISON CLIP\n" << endl;
             }
-			#endif
+	    #endif
+
             if (detected) { collision = true; }
 
             #ifdef DEBUG
-			cout << "\nCREATING VIDEO\n" << endl;
-			#endif
-
-		cout << "Adding to custom struct" << endl;
+	    cout << "\nCREATING VIDEO\n" << endl;
+ 	    cout << "\nADDING TO CUSTOM STRUCT\n" << endl;
+	    #endif
+            write_args.collision = collision;
+            write_args.frame_count = frame_count;
+            write_args.frames = frames;   
+/*
             write_args->collision = collision;
-            write_args->frames = frames;
             write_args->frame_count = frame_count;
-
-		cout << "creating thread" << endl;
+            write_args->frames = frames;   
+*/
+            cout << "\nMEMBERS INITIALIZED\n" << endl;
+	    cout << "\nCREATING THREAD\n" << endl;
             thread_ret = pthread_create(&write_thread, 
                                         NULL, 
                                         write_frames, 
@@ -185,18 +185,16 @@ int main(){
                 cout << "\nERROR CREATING THREAD\n" << endl;
                 exit(EXIT_FAILURE);
             } 
-
-            test_count = 0;
+            cout << "\nTHREAD CREATED\n" << endl;
             collision = false;
             save = false;
 	    limit = PRETIME;
          }
-         test_count++;
 	 //We need to close the signals in order to write to the
 	 //file.
          signals.close();
-
-	free(write_args);
+//       pthread_exit(NULL);
+//         free(write_args);
     }
     input_cap.release();
 }
@@ -260,13 +258,23 @@ string create_id(const char *path, bool collision)
  */
 void *write_frames(void *write_args)
 {
-    cout << "\nINSIDE UPDATE FRAMES\n" << endl;
-    struct write_struct *args = (write_struct *)malloc(sizeof(struct write_struct));
-    args = (struct write_struct*) write_args;
-    string vid_id;
+    cout << "\nINSIDE WRITE FRAMES FUNCTION\n" << endl;
 
+    struct write_struct *args = (struct write_struct *) write_args;
+//    write_struct args = (write_struct)write_args;
+//    write_struct *args;
+/*
+    (args.frame_count) = (write_args->frame_count);
+    (args.collision) = (write_args->collision);
+    (args.frames) = (write_args->frames);
+
+    (args->frame_count) = (write_args.frame_count);
+    (args->collision) = (write_args.collision);
+    (args->frames) = (write_args.frames);
+*/
     // Create the output destination. Check if directory
     // already exists before creating new directory
+    string vid_id;
     create_directory(path, st);
     vid_id = create_id(path, args->collision);
     VideoWriter output_cap(vid_id,
@@ -283,20 +291,41 @@ void *write_frames(void *write_args)
 
      #ifdef DEBUG
      cout << "\nPUSHING FRAMES\n" << endl;
-	 #endif
+     #endif
 
+/*
+     // Write collision seqeuence to output file
+     while(!(args.frames).empty()){
+         #ifdef DEBUG
+         cout << "WRITING FRAME: " << (args.frame_count) << endl;
+	 #endif
+         output_cap.write((args.frames).front());
+         (args.frames).pop();
+         (args.frame_count) += 1;
+     }
+*/
      // Write collision seqeuence to output file
      while(!(args->frames).empty()){
          #ifdef DEBUG
-          cout << "WRITING FRAME: " << (args->frame_count) << endl;
-		#endif
+         cout << "WRITING FRAME: " << (args->frame_count) << endl;
+	 #endif
          output_cap.write((args->frames).front());
          (args->frames).pop();
          (args->frame_count) += 1;
      }
+
+     #ifdef DEBUG
+     cout << "\nDONE WRITING\n" << endl;
+     #endif
+     
      output_cap.release();
-     free(args);
+     cout << "\nRELEASED OUTPUT CAP\n" << endl;
+
+//     free(args);
+//     cout << "\nFREED ARGS STRUCT\n" << endl;
+
      pthread_exit(NULL);
+     cout << "\nEXITED THREAD IN WRITE_FRAMES FUNCTION\n" << endl;
 }
 
 //-----EOF-----
