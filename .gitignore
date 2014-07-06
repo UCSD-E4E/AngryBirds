@@ -4,3 +4,4 @@
 *.o
 .cache/
 SDCard/videos/
+.nano*
