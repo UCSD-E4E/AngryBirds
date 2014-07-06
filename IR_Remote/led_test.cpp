@@ -13,9 +13,9 @@ void flash_led(BlackGPIO *led_out, int num_times);
 
 
 int main() {
-   BlackGPIO *led_out = new BlackGPIO(GPIO_68, output);  // P8_10
+   BlackGPIO *led_out = new BlackGPIO(GPIO_30, output);  // P8_10
    cout << "LED_OUT VALUE: " << led_out->getValue() << endl;
-   flash_led(led_out, 5);
+   flash_led(led_out, 10);
 }
 
 

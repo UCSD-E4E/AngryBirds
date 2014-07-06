@@ -6,9 +6,7 @@
 
 using namespace std;
 
-void flash_led(BlackGPIO *led_out, int num_times);
-
-
+void flash_led(int num_times);
 
 int main() {
    // Change/Check GPIO Pin #
@@ -21,6 +19,7 @@ int main() {
        cout << "GPIO pin value: " << ir_in->getValue() << endl;
        if (ir_in->isHigh()) {
            cout << "SIGNAL HEARD!" << endl;
+           flashLed(5);
        }
     } 
 }
@@ -30,23 +29,18 @@ int main() {
 
 /* 
  */
-void flash_led(BlackGPIO *led_out, int num_times) {
-    cout << "IN FLASH LED" << endl;
-    if (led_out->fail()) {
-        cout << "ERROR" << endl;
-    }
+/* Flash the LED (P9_11 - GPIO 30)
+ */
+void flashLed(int numTimes) {
+    // Set up the output pin for controlling the LED light
+    BlackGPIO *ledOut = new BlackGPIO(GPIO_30, output);  // P9_11
 
     int i = 0;
-    while (i < num_times) {
-        cout << "i: " << i << endl;
-        cout << "LED_OUT VALUE_start: " << led_out->getValue() << endl;
-        led_out->setValue(high);
-        cout << "LED_OUT VALUE_set high: " << led_out->getValue() << endl;
+    while (i < numTimes) {
+        ledOut->setValue(high);
         sleep(1);
-        led_out->setValue(low);
-        cout << "LED_OUT VALUE_set low: " << led_out->getValue() << endl;
+        ledOut->setValue(low);
         sleep(1);
         i++;
     }
-}
 

@@ -95,7 +95,7 @@ int main()
     ofstream signals;
 
     // Gets analog readings from adc pin 4
-    BlackADC *test_adc = new BlackADC(AIN4);
+    BlackADC *test_adc = new BlackADC(AIN4); 	       // P9_34/33
     BlackGPIO *ir_in = new BlackGPIO(GPIO_68, input);  // P8_10
 
   /*---------------------------------------------------
@@ -142,7 +142,7 @@ int main()
             return -1;
         }
 	if(!isSignalRecieved(ir_in)) {
-	        cout << "\nRECORDING\n" << endl;
+	        cout << "RECORDING" << endl;
 		if(input_cap.read(frame) && !stopSig) {
 		     // Open file to write signal data
 		     signals.open("/home/ubuntu/AngryBirds/SDCard/signals.txt",
@@ -209,9 +209,11 @@ int main()
 		    break; //break out of infinite while and do cleanup
 	        }
 	    } else {
-                input_cap.release(); // Close the camera
+		flashLed(5); // Indicate that IR signal has been recieved
+//                input_cap.release(); // Close the camera
 	        sleep(120); // Sleep for 30 minutes // 2 Minutes Test
-                input_cap.open(0); // Re-open the camera
+//                input_cap.open(0); // Re-open the camera
+                flashLed(5); // Indicate that script will resume
 	}
     } // End While
     input_cap.release();
