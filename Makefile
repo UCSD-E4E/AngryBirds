@@ -2,33 +2,22 @@
 # Created 07/15/2014
 # E4E + REU
 
-#To compile the normal program, type in "make main"
-
-GCC = g++ -O2 -std=c++0x 
+CXX = g++ -O2 -std=c++0x 
+CXXFLAGS = 
 CXXLIBS = -lpthread
-all: main test testSig SensorSignal analog_stream test_main
+all: testSig analog_stream test_main
 
-main: main.o BlackLib.o SensorSignal.o
-	$(GCC) -o main main.o BlackLib.o SensorSignal.o `pkg-config --libs opencv`
 test_main: test_main.o BlackLib.o SensorSignal.o
-	$(GCC) -o test_main test_main.o BlackLib.o SensorSignal.o `pkg-config --libs opencv` $(CXXLIBS)
+	$(CXX) -o test_main test_main.o BlackLib.o SensorSignal.o `pkg-config --libs opencv` $(CXXLIBS)
 analog_stream: analog_stream.cpp BlackLib.h BlackLib.cpp
-	$(GCC) -o analog_stream analog_stream.cpp BlackLib.cpp
-test: test.cpp
-	$(GCC) -o test test.cpp `pkg-config --libs opencv`
-testSig: testSignal.cpp BlackLib.h BlackLib.cpp
-	$(GCC) -o testSig testSignal.cpp BlackLib.cpp
-SensorSignal: SensorSignal.cpp BlackLib.h BlackLib.cpp
-	$(GCC) -o SensorSignal SensorSignal.cpp BlackLib.cpp
+	$(CXX) -o analog_stream analog_stream.cpp BlackLib.cpp
 
-main.o: main.cpp
-	$(GCC) -c main.cpp
 test_main.o: test_main.cpp
-	$(GCC) -c test_main.cpp $(CXXLIBS)
+	$(CXX) -c test_main.cpp $(CXXLIBS)
 BlackLib.o: BlackLib.cpp
-	$(GCC) -c BlackLib.cpp
+	$(CXX) -c BlackLib.cpp
 SensorSignal.o: SensorSignal.cpp
-	$(GCC) -c SensorSignal.cpp
+	$(CXX) -c SensorSignal.cpp
 
 clean:
-	rm -rf *.o main test testSig SensorSignal analog_stream test_main
+	rm -rf *.o test testSig SensorSignal analog_stream test_main
