@@ -72,18 +72,11 @@ int main()
     //if(PRELIM)
     //{ 
 	int count = 0;
-	const int NClimit = 600;  //NClimit -> frames before auto save
+	const int NClimit = 60;  //NClimit -> frames before auto save
     //}
 
-/*
-    // ADC Ground = pin 34
-    // AIN0 = pin 39
-    // AIN1 = pin 40
-    BlackADC* test = new BlackADC(AIN0);
-*/
-
     // Fle path for video storage
-    path = "/home/ubuntu/SDCard/videos/";
+    path = "/home/ubuntu/AngryBirds/SDCard/videos/";
      
     // Variables needed for classifying waveform signal
     float average_signal;
