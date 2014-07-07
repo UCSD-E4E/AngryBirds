@@ -7,9 +7,9 @@
 #include "opencv2/highgui/highgui.hpp"
 #include <time.h>
 #include <errno.h>
-#include <sys/stat.h>
 #include <queue>
 #include <deque>
+#include <sys/stat.h>
 #include <string>
 #include <thread>
 #include <fstream>
@@ -204,7 +204,7 @@ int main(){
             // What if ... writing operations takes longer reading operations ?
             // videoWriter's pushing/popping is slower than frame capture's 
             // pusing/popping ... what will happen ? 
-            pthread_join(update_thread, NULL);
+            // pthread_join(update_thread, NULL);
             frame_count = 0;
 
             #ifdef DEBUG
@@ -214,7 +214,7 @@ int main(){
             test_count = 0;
             collision = false;
             save = false;
-	    	limit = PRETIME;
+	    limit = PRETIME;
             output_cap.release();
          }
         test_count++;
@@ -309,6 +309,7 @@ void *update_frames(void *update_args)
     {
         (args->frames).push((args->frame).clone());
     }
+    pthread_exit(NULL);
 }
 
 //-----EOF-----
