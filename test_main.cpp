@@ -44,16 +44,24 @@ using namespace std;
   -----------------------------------------------------*/
 void create_directory(const char *path, struct stat &st);
 string create_id(const char *path, bool collision);
-//void update_frames(queue<Mat> &frames, Mat &frame, int limit);
-void *update_frames(void* update_args);
+void *write_frames(void* write_args);
 string get_date();
 
 // Struct containing necessary values for update_frames function
-struct update_struct{
+struct write_struct{
     queue<Mat> frames;
-    Mat frame;
-    int limit;
+    bool collision;
+    int frame_count;
 };
+
+// Get the input from adc
+BlackADC *test_adc = new BlackADC(AIN4);
+// Path to save video files
+const char *path = "/home/ubuntu/AngryBirds/SDCard/videos/";
+// Struct required to check the status of video directory
+struct      stat st;
+
+
 
 int main(){
   /*---------------------------------------------------
@@ -62,11 +70,8 @@ int main(){
     Mat         frame;
     queue       <Mat> frames;
     deque       <int> sensor_signal;
-    deque       <int> averaged_signal;       // DUSTIN
-    struct      stat st;
-    struct      update_struct update_args;
-    string      vid_id;
-    pthread_t   update_thread;
+    struct      write_struct write_args;
+    pthread_t   write_thread;
     float       average_signal  = 0;
     float       normal_signal   = 0;
     int         thread_ret      = 0;
@@ -77,10 +82,6 @@ int main(){
     bool        save            = false;
     bool        detected        = false;
     bool        collision       = false;
-    //Get the input from adc
-    BlackADC *test_adc = new BlackADC(AIN4);
-    //Path to save video files
-    const char *path = "/home/ubuntu/AngryBirds/SDCard/videos/";
     ofstream signals;
 
   /*---------------------------------------------------
@@ -90,7 +91,7 @@ int main(){
     VideoCapture input_cap(0);
 
     // Set (lower) the resolution for the webcam
-    //since we don't need 1080p of nothing
+    // since we don't need 1080p of nothing
     input_cap.set(CV_CAP_PROP_FRAME_WIDTH, X_RESOLUTION);
     input_cap.set(CV_CAP_PROP_FRAME_HEIGHT, Y_RESOLUTION);
 
@@ -103,7 +104,7 @@ int main(){
     // Read in each frame for storage and processing 
     while(input_cap.read(frame) ){
         if(frames.size() >= limit){
-	    	frames.pop();
+	    frames.pop();
             frames.push(frame.clone());
         } else {
             frames.push(frame.clone());
@@ -127,11 +128,11 @@ int main(){
                  signals << test_adc->getNumericValue();
                  signals << "\n";
              }
-            save = true;
-	    	limit = POSTTIME;
+             save = true;
+	     limit = POSTTIME;
         }
 
-		#ifdef DEBUG
+	#ifdef DEBUG
         cout << "TEST_COUNT: " << test_count << endl;
         cout << "FRAME SIZE: " << frames.size() << endl;
         cout << "SAVE: " << save << endl;
@@ -153,74 +154,31 @@ int main(){
 			cout << "\nCREATING VIDEO\n" << endl;
 			#endif
 
-       	    // Create the output destination. Check if directory
-            // already exists before creating new directory
-            create_directory(path, st);
-            vid_id = create_id(path, collision);
-	    	VideoWriter output_cap(vid_id,
-                                   CV_FOURCC('M','J','P','G'),
-                                   FPS, 
-                                   Size(X_RESOLUTION, Y_RESOLUTION), 
-                                   true);
+		cout << "Adding to custom struct" << endl;
+            write_args.collision = collision;
+            write_args.frames = frames;
+            write_args.frame_count = frame_count;
 
-            if(!output_cap.isOpened()) 
-            {
-                cout << "\nOUTPUT VIDEO COULD NOT BE OPENED\n" << endl;
-                return -1;
-            }
-
-            #ifdef DEBUG
-			cout << "\nPUSHING FRAMES\n" << endl;
-	 		#endif
-
-            // Create the thread that will update the queue of video frames
-            // while we are writing the current queue of frames to the ouput
-            // file  
-	    //!!thread update_thread(update_frames, frames, frame, limit); 
-            thread_ret = pthread_create(&update_thread,
-                                        NULL,
-                                        update_frames,
-                                        (void*)&update_args);
-
-            cout << "\nTHREAD RET: \n" << thread_ret << endl;
-
-            // Check whether we can create the new thread
-            if (thread_ret)
+		cout << "creating thread" << endl;
+            thread_ret = pthread_create(&write_thread, 
+                                        NULL, 
+                                        write_frames, 
+                                        (void*)&write_args);
+            if (thread_ret) 
             {
                 cout << "\nERROR CREATING THREAD\n" << endl;
                 exit(EXIT_FAILURE);
-            }
-
-            // Write collision seqeuence to output file
-            while(!frames.empty()){
-                #ifdef DEBUG
-			cout << "WRITING FRAME: " << frame_count << endl;
-		#endif
-                output_cap.write(frames.front());
-                frames.pop();
-                frame_count += 1;
-            }
-
-            // What if ... writing operations takes longer reading operations ?
-            // videoWriter's pushing/popping is slower than frame capture's 
-            // pusing/popping ... what will happen ? 
-            // pthread_join(update_thread, NULL);
-            frame_count = 0;
-
-            #ifdef DEBUG
-			cout << "\nDONE WRITING\n" << endl;
-			#endif
+            } 
 
             test_count = 0;
             collision = false;
             save = false;
 	    limit = PRETIME;
-            output_cap.release();
          }
-        test_count++;
-	//We need to close the signals in order to write to the
-	//file.
-        signals.close();
+         test_count++;
+	 //We need to close the signals in order to write to the
+	 //file.
+         signals.close();
     }
     input_cap.release();
 }
@@ -230,18 +188,6 @@ int main(){
 /*---------------------------------------------------------
                   FUNCTION DEFINITIONS
   ---------------------------------------------------------*/
-/* For testing purposes ...
-void print_hello(string msg) 
-{
-    int i = 0;
-    while (i < 100) 
-    {
-        cout << "\n" + msg + "\n" << endl; 
-    }
-}
-*/
-
-
 /* Description: Creates a new directory to store footage if
  *              it doesn't exist already
  */
@@ -294,22 +240,43 @@ string create_id(const char *path, bool collision)
 
 /* Description: 
  */
-//!!void update_frames(queue<Mat> &frames, Mat &frame, int limit)
-void *update_frames(void *update_args)
+void *write_frames(void *write_args)
 {
     cout << "\nINSIDE UPDATE FRAMES\n" << endl;
-    struct update_struct *args = (struct update_struct*)update_args;
+    struct write_struct *args = (struct write_struct*) write_args;
+    string vid_id;
 
-    if((args->frames).size() >= (args->limit))
-    {
-	(args->frames).pop();
-        (args->frames).push((args->frame).clone());
-    }
-    else
-    {
-        (args->frames).push((args->frame).clone());
-    }
-    pthread_exit(NULL);
+    // Create the output destination. Check if directory
+    // already exists before creating new directory
+    create_directory(path, st);
+    vid_id = create_id(path, args->collision);
+    VideoWriter output_cap(vid_id,
+                           CV_FOURCC('M','J','P','G'),
+                           FPS, 
+                           Size(X_RESOLUTION, Y_RESOLUTION), 
+                           true);
+
+     if(!output_cap.isOpened()) 
+     {
+         cout << "\nOUTPUT VIDEO COULD NOT BE OPENED\n" << endl;
+         return NULL;
+     }
+
+     #ifdef DEBUG
+     cout << "\nPUSHING FRAMES\n" << endl;
+	 #endif
+
+     // Write collision seqeuence to output file
+     while(!(args->frames).empty()){
+         #ifdef DEBUG
+          cout << "WRITING FRAME: " << (args->frame_count) << endl;
+		#endif
+         output_cap.write((args->frames).front());
+         (args->frames).pop();
+         (args->frame_count) += 1;
+     }
+     output_cap.release();
+     pthread_exit(NULL);
 }
 
 //-----EOF-----
