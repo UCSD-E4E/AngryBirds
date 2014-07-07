@@ -55,11 +55,11 @@ struct write_struct{
 };
 
 // Get the input from adc
-BlackADC *test_adc = new BlackADC(AIN4);
+//BlackADC *test_adc = new BlackADC(AIN4);
 // Path to save video files
 const char *path = "/home/ubuntu/AngryBirds/SDCard/videos/";
 // Struct required to check the status of video directory
-struct      stat st;
+struct  stat st;
 
 
 
@@ -70,7 +70,7 @@ int main(){
     Mat         frame;
     queue       <Mat> frames;
     deque       <int> sensor_signal;
-    struct      write_struct write_args;
+    write_struct *write_args = (write_struct *) malloc(sizeof(struct write_struct));
     pthread_t   write_thread;
     float       average_signal  = 0;
     float       normal_signal   = 0;
@@ -83,6 +83,8 @@ int main(){
     bool        detected        = false;
     bool        collision       = false;
     ofstream signals;
+
+	cout << "start of program!" << endl;
 
   /*---------------------------------------------------
        FRAME CAPTURE/STORAGE + COLLISION DETECTION
@@ -119,8 +121,12 @@ int main(){
         // Basic test condition (for testing purposes - to be 
         // changed). Flag if particular signal exceeds test threshold
         // otherwise, proceed with continuous footage capture 
-        if ((test_adc->getNumericValue() > TEST_THRESHOLD) ||
-            (test_count >= max_count)){
+        if (
+	#ifdef ADC
+	(test_adc->getNumericValue() > TEST_THRESHOLD) ||
+	#endif
+        (test_count >= max_count)){
+		#ifdef ADC
             if (test_adc->getNumericValue() > TEST_THRESHOLD){
                  detected = true;
                  collision = true;
@@ -128,6 +134,7 @@ int main(){
                  signals << test_adc->getNumericValue();
                  signals << "\n";
              }
+		#endif
              save = true;
 	     limit = POSTTIME;
         }
@@ -155,9 +162,9 @@ int main(){
 			#endif
 
 		cout << "Adding to custom struct" << endl;
-            write_args.collision = collision;
-            write_args.frames = frames;
-            write_args.frame_count = frame_count;
+            write_args->collision = collision;
+            write_args->frames = frames;
+            write_args->frame_count = frame_count;
 
 		cout << "creating thread" << endl;
             thread_ret = pthread_create(&write_thread, 
@@ -179,6 +186,8 @@ int main(){
 	 //We need to close the signals in order to write to the
 	 //file.
          signals.close();
+
+	free(write_args);
     }
     input_cap.release();
 }
@@ -243,7 +252,8 @@ string create_id(const char *path, bool collision)
 void *write_frames(void *write_args)
 {
     cout << "\nINSIDE UPDATE FRAMES\n" << endl;
-    struct write_struct *args = (struct write_struct*) write_args;
+    struct write_struct *args = (write_struct *)malloc(sizeof(struct write_struct));
+    args = (struct write_struct*) write_args;
     string vid_id;
 
     // Create the output destination. Check if directory
@@ -276,6 +286,7 @@ void *write_frames(void *write_args)
          (args->frame_count) += 1;
      }
      output_cap.release();
+     free(args);
      pthread_exit(NULL);
 }
 
