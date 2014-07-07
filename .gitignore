@@ -1,0 +1,6 @@
+.bash*
+.profile
+.sudo_as*
+*.o
+.cache/
+SDCard/videos/

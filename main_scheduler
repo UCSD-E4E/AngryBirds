@@ -1,8 +1,8 @@
 #! /bin/bash 
 
-./test_main&
+sudo ./test_main&
 PID=$!
 echo $PID
-sleep 120
+sleep 7200
 kill $PID 
 

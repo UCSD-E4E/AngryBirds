@@ -25,15 +25,15 @@ using namespace std;
 /*-------------------------------------------------
              PREPROCESSOR CONSTANTS
   -------------------------------------------------*/
-#define DEBUG	         false 
-#define PRETIME	         100	   
-#define POSTTIME         1200   
+#define DEBUG	         true
+#define PRETIME	         100
+#define POSTTIME         1500
 #define FPS 	         20
-#define X_RESOLUTION     352    	 
-#define Y_RESOLUTION     288    
-#define WINDOW_SIZE      0       
-#define GROUND_THRESHOLD 0  
-#define TEST_THRESHOLD   700 
+#define X_RESOLUTION     352
+#define Y_RESOLUTION     288
+#define WINDOW_SIZE      0
+#define GROUND_THRESHOLD 0
+#define TEST_THRESHOLD   700
 
 
 
@@ -43,9 +43,6 @@ using namespace std;
 void create_directory(const char *path, struct stat &st);
 string create_id(const char *path, bool collision);
 string get_date();
-
-
-
 
 int main()
 {
@@ -57,7 +54,7 @@ int main()
     deque   <int> sensor_signal;   
     deque   <int> averaged_signal;       // DUSTIN 
     struct  stat st;               
-    string  vid_id;               
+    string  vid_id;
     float   average_signal  = 0;
     float   normal_signal   = 0;        
     int     frame_count     = 0;         // For Testing Purposes
@@ -68,21 +65,24 @@ int main()
     bool    detected        = false;
     bool    collision       = false;
 
+    //Get the input from adc
     BlackADC* test_adc = new BlackADC(AIN4);
+    //Path to save video files
     const char * path = "/home/ubuntu/AngryBirds/SDCard/videos/";
     ofstream signals;
 
   /*---------------------------------------------------
        FRAME CAPTURE / STORAGE + COLLISION DETECTION
     ---------------------------------------------------*/
-    // Open video no.0
+    // Open video capture device #0
     VideoCapture input_cap(0);
- 
-    // Set (lower) the resolution for the webcam 
+
+    // Set (lower) the resolution for the webcam
+    //since we don't need 1080p of nothing
     input_cap.set(CV_CAP_PROP_FRAME_WIDTH, X_RESOLUTION);
     input_cap.set(CV_CAP_PROP_FRAME_HEIGHT, Y_RESOLUTION);
 
-    // Open the camera for capturing, if failure, terminate 
+    // Open the camera for capturing, if failure, terminate
     if (!input_cap.isOpened())
     {
         cout << "\nINPUT VIDEO COULD NOT BE OPENED\n" << endl;
@@ -90,7 +90,7 @@ int main()
     }
 
     // Read in each frame for storage and processing 
-    while(input_cap.read(frame))
+    while(input_cap.read(frame) )
     {
         if(frames.size() >= limit)
         {
@@ -103,10 +103,10 @@ int main()
         }
 
         // Open file to write signal data
-        signals.open("/home/ubuntu/AngryBirds/signals.txt", 
-                      fstream::in  | 
+        signals.open("/home/ubuntu/AngryBirds/signals.txt",
+                      fstream::in  |
                       fstream::out |
-                      fstream::app); 
+                      fstream::app);
 
         // Basic test condition (for testing purposes - to be 
         // changed). Flag if particular signal exceeds test threshold
@@ -117,6 +117,8 @@ int main()
             if (test_adc->getNumericValue() > TEST_THRESHOLD) 
             {
                  detected = true;
+                 collision = true;
+                 signals << ("\n" + get_date() + ":    ");
                  signals << test_adc->getNumericValue();
                  signals << "\n";
              }
@@ -130,19 +132,15 @@ int main()
             cout << "FRAME SIZE: " << frames.size() << endl;
             cout << "SAVE: " << save << endl;   
         }
-	
+
         // Event detected, save queue to write to output file 
         if((save) && (frames.size() >= limit))
         { 
-            if (DEBUG)
-            {
-                if (detected)
-                { 
+            if (DEBUG){
+                if (detected){
                     cout << "\nEVENT TRIGGERED!\n" << endl;
                     //collision = true;
-                }
-                else 
-                {
+                } else {
                     cout << "\nSAVING SCHEDULED NON-COLLISON CLIP\n" << endl;
                 }
             }
@@ -151,17 +149,17 @@ int main()
 
             if (DEBUG) {cout << "\nCREATING VIDEO\n" << endl;}
 
-            // Create the output destination 
+            // Create the output destination
+	    //Checks if directory already exists before creating new dir
             create_directory(path, st);
             vid_id = create_id(path, collision);
-	    VideoWriter output_cap(vid_id, 
+	    VideoWriter output_cap(vid_id,
                                    CV_FOURCC('M','J','P','G'),
                                    FPS, 
                                    Size(X_RESOLUTION, Y_RESOLUTION), 
                                    true);
 
-            if(!output_cap.isOpened())
-            {
+            if(!output_cap.isOpened()) {
                 cout << "\nOUTPUT VIDEO COULD NOT BE OPENED\n" << endl;
                 return -1;
             }
@@ -169,8 +167,7 @@ int main()
             if (DEBUG) {cout << "\nPUSHING FRAMES\n" << endl;}
 
             // Write collision seqeuence to output file
-            while(!frames.empty())
-            {
+            while(!frames.empty()){
                 if (DEBUG) {cout << "WRITING FRAME: " << frame_count << endl;}
                 output_cap.write(frames.front());
                 frames.pop();
@@ -187,6 +184,8 @@ int main()
             output_cap.release();
          }
         test_count++;
+	//We need to close the signals in order to write to the
+	//file.
         signals.close();
     }
     input_cap.release();

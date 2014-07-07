@@ -6,6 +6,7 @@ using namespace std;
 
 int main()
 {
+/*
     int count = 0;
     int c=4;
     // Create new file to test success of cron scheduler 
@@ -38,7 +39,7 @@ int main()
     f.open("/home/ubuntu/AngryBirds/ok.txt", std::fstream::in | std::fstream::out | std::fstream::app); 
     f << "\nSUCCESS2\n";
     f.close();
-/*
+*/
     // NOTE: output is diverted to /var/log/syslog during cron 
     // Loop to test kill script
     while (1) 
@@ -46,5 +47,4 @@ int main()
         cout << "SUCCESS" << endl;  
         sleep(1);
     }
-*/
 }
