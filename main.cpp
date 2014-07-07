@@ -33,7 +33,7 @@
 /* PREPROCESSOR CONSTANTS
  */
 #define PRELIM	 true	     // Record ALL video
-#define DEBUG	 true        
+#define DEBUG	 false        
 #define PRETIME	 100	     // 5 SEC (Before Collision) 
 #define POSTTIME 700	     // 35 SEC TOTAL (30 SEC After Collision)
 #define FPS 	 20
@@ -51,12 +51,9 @@ using namespace std;
 /* HELPER FUNCTION PROTOTYPES
  */
 void create_directory(const char *path, struct stat &st);
-string create_id(const char *path);
+string create_id(const char *path, bool nc);
 
 
-
-/*
- */
 int main()
 {
     Mat frame;
@@ -76,44 +73,44 @@ int main()
     BlackADC* test_adc = new BlackADC(AIN4);
     const char * path = "/home/ubuntu/AngryBirds/SDCard/videos/";
 
-
 //    if(PRELIM)
 //    {
         queue <Mat> NCBuff; 
-	int count = 0;
-	const int NClimit = 600000;  //NClimit -> frames before auto save
+	int nc_count = 0;
+	const int NClimit = 100;  //NClimit -> frames before auto save
 //    }
 
-
-
+    int test_count = 0;
 /*---------------------------------------------------------------------*/
 
+    /* Open camera 0 for capturing */
     VideoCapture input_cap(0);
  
+    /* Set resolution of camera (lowered) */
     input_cap.set(CV_CAP_PROP_FRAME_WIDTH, X_RESOLUTION);
     input_cap.set(CV_CAP_PROP_FRAME_HEIGHT, Y_RESOLUTION);
 
+    /* Check success, if fail, exit program */
     if (!input_cap.isOpened())
     {
         cout << "!!! Input video could not be opened" << endl;
         return -1;
     }
 
+    /* Capture frames from camera, storing each new frame into buffer */
     while(input_cap.read(frame))
     {
-	if(DEBUG)
-        { cout << "number of frames saved = " << frames.size() << endl; }
-
         if(frames.size() >= limit)
         {
 	    if(PRELIM)
 	    {
-                // Save every fourth frame
-		//if(count % 4 == 0)
-		//{
+                /* If no collision is detected, store every fourth
+                   frame to conserve memory */
+		if(nc_count % 4 == 0)
+		{
 		      NCBuff.push(frames.front());
-		//}
-		count++;
+		}
+		nc_count++;
 	    }
 	    frames.pop();
             frames.push(frame.clone());
@@ -122,20 +119,21 @@ int main()
         {
             frames.push(frame.clone());
         }
-	
-	// If too much time has passed, save video in the 
-        // buffer, reset count and buffer 
+
+	/* Intermittently save a non-collision video (every nc_count) */
 	if(PRELIM)
 	{   
-            if (DEBUG) { cout << "COUNT: " << count << endl; }
-            
-	    if (count == NClimit)
+            cout << "nc_count: " << nc_count << endl; 
+	    if (nc_count > NClimit)
 	    {
-                if (DEBUG) {cout << "\nNO-COLLISION LIMIT REACHED\n" << endl;}
+                if (DEBUG) 
+                {
+                    cout << "\n\nNC LIMIT REACHED" << endl;
+                    cout << "Writing a no collision clip\n\n" << endl;
+                }
 
                 create_directory(path, st);
-                vid_id = create_id(path);
-                
+                vid_id = create_id(path, true);
 	   	VideoWriter output_cap(vid_id, 
                                    CV_FOURCC('M','J','P','G'),
                                    FPS, 
@@ -146,20 +144,21 @@ int main()
                 // Otherwise, push the frames from the buffer to the save file 
           	if(!output_cap.isOpened())
             	{
-                    cout << "!!! Output video for NCBuff could not be"
-		    	 <<" opened" << endl;
+                    cout << "\n\n 111111 Output video for NCBuff could not be opened\n\n" << endl;
             	}
 		else    
 		{
+                    int nc_f_counter = 0;
            	    while(!NCBuff.empty())
             	    {
+                        cout << "Writing NC Clip: " << nc_f_counter << endl;
                         output_cap.write(NCBuff.front());
                         NCBuff.pop();
-	  	        cout << "Non-Collision Video Saved" << endl;
+	  	        nc_f_counter++;
 		    }
-		}
+                    cout << "Non-Collision Video Saved" << endl;		                }
 		output_cap.release();
-		count = 0;
+		nc_count = 0;
 	    }
 	}
 
@@ -181,27 +180,36 @@ int main()
             cout << "ADC Analog Value: " << test_adc->getNumericValue() << endl;
         }
 */ 
-        if (test_adc->getNumericValue() > TEST_THRESHOLD)
+
+
+        /* If collision is detected, save event sequence */
+//        if (test_adc->getNumericValue() > TEST_THRESHOLD)
+        if (test_count > 50)
         {
             cout << "Event detected!" << endl;
             save = 1;
 	    limit = POSTTIME;
+
 	    if(DEBUG)
 	    {
                 cout << "ADC value exceeded " << TEST_THRESHOLD << "!" << endl;
 		cout << "Queue size extended" << endl; 
 	    }
         }
+  
+        cout << "test_count: " << test_count << endl;
+        cout << "frames.size(): " << frames.size() << endl;
+        cout << "save: " << save << endl;
 	
         // Collision detected, save queue to write to file 
         if((save == 1) && (frames.size() >= limit))
         {  
+            cout << "\n\nEVENT TRIGGERED!\n\n" << endl;
             create_directory(path, st);
-
+            /*
             if(PRELIM)
 	    {
-                vid_id = create_id(path) + "NO_COLLISION";
-
+                vid_id = create_id(path, true);
                 VideoWriter output_cap(vid_id, 
                                        CV_FOURCC('M','J','P','G'),
                                        FPS, 
@@ -212,23 +220,27 @@ int main()
                 // Otherwise, push the frames from the buffer to save the file
            	if(!output_cap.isOpened())
             	{
-                    cout << "!!! Output video for NCBuff could not be opened"
-			<< endl;
+                    cout << "\n\n 222222--Output video for NCBuff could not be opened\n\n" << endl;
             	}
 		else	
 		{
+                    int nc_f_counter = 0;
            	    while(!NCBuff.empty())
             	    {
+                        cout << "Writing NC Clip: " << nc_f_counter << endl;
                         output_cap.write(NCBuff.front());
                         NCBuff.pop();
-		        cout << "Non-Collision Video Saved" << endl;
+		        nc_f_counter++;                            
 		    }
+                    cout << "Non-Collision Video Saved" << endl;
 		}
 		output_cap.release();
-		count = 0;
-	    }
+		nc_count = 0;
+	    } */
             
-            vid_id = create_id(path);
+            cout << "\n\nCREATING VIDEO\n\n" << endl;
+
+            vid_id = create_id(path, false);
 	    VideoWriter output_cap(vid_id, 
                                    CV_FOURCC('M','J','P','G'),
                                    FPS, 
@@ -244,17 +256,24 @@ int main()
 
 	    if(DEBUG) { cout << "Number of frames saved: " << frames.size() << endl; }
 
+            cout << "\n\nPUSHING FRAMES\n\n" << endl;
+            int frame_count = 0;
 	    // Push the frames from the buffer to the save file
             while(!frames.empty())
             {
+                cout << "WRITING FRAME: " << frame_count << endl;
                 output_cap.write(frames.front());
                 frames.pop();
-		cout << "Video Saved";
+                frame_count++;
             }
+            cout << "Video Saved";
+            cout << "\n\nDONE WRITING\n\n" << endl;
             output_cap.release();
             save = 0;
 	    limit = PRETIME;
+            test_count = 0;
         }
+        test_count++;
     }
     cout << "!!! Video frame could not be read" << endl;
     input_cap.release();
@@ -286,7 +305,7 @@ void create_directory(const char *path, struct stat &st)
 /* Creates a new ID to name output video file
  * in format "Year-Month-Day Hour_Minute_Second"
  */
-string create_id(const char *path) 
+string create_id(const char *path, bool nc) 
 {
     time_t rawtime;
     struct tm *timeinfo;
@@ -297,8 +316,14 @@ string create_id(const char *path)
     timeinfo = localtime(&rawtime);
     strftime(buffer, 80, "%F %H_%M_%S", timeinfo);
     string new_id = string(buffer);
-    vid_id = path + new_id + ".avi";
-
+    if (nc) 
+    {
+        vid_id = path + new_id + "_NC" + ".avi";
+    }
+    else 
+    {
+        vid_id = path + new_id + ".avi";
+    }
     return vid_id;
 }
 

@@ -26,7 +26,11 @@ int main()
         cout << "converted voltage: " << converted << endl; 
         cout << "\n" << endl;
 
-        sleep(1);
+        if (analog > 60 ){
+            sleep(3);
+        }
+
+        //sleep(0.5);
     }
 }
 

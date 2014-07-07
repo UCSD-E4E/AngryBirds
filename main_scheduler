@@ -1,0 +1,8 @@
+#! /bin/bash 
+
+./test_main&
+PID=$!
+echo $PID
+sleep 120
+kill $PID 
+
