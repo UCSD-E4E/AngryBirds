@@ -28,6 +28,7 @@ using namespace std;
              PREPROCESSOR CONSTANTS
   -------------------------------------------------*/
 #define DEBUG	         true
+#define ADC              true
 #define PRETIME	         50    // 100
 #define POSTTIME         100    // 1500
 #define FPS 	         20
@@ -54,8 +55,6 @@ struct write_struct{
     int frame_count;
 };
 
-// Get the input from adc
-//BlackADC *test_adc = new BlackADC(AIN4);
 // Path to save video files
 const char *path = "/home/ubuntu/AngryBirds/SDCard/videos/";
 // Struct required to check the status of video directory
@@ -64,13 +63,14 @@ struct  stat st;
 
 
 int main(){
+  cout << "HERE!" << endl;
+
   /*---------------------------------------------------
           VARIABLE DECLARATIONS / INITIALIZATION
     ---------------------------------------------------*/
     Mat         frame;
     queue       <Mat> frames;
     deque       <int> sensor_signal;
-    write_struct *write_args = (write_struct *) malloc(sizeof(struct write_struct));
     pthread_t   write_thread;
     float       average_signal  = 0;
     float       normal_signal   = 0;
@@ -84,7 +84,12 @@ int main(){
     bool        collision       = false;
     ofstream signals;
 
-	cout << "start of program!" << endl;
+    // Get the input from adc
+    BlackADC *test_adc = new BlackADC(AIN4);
+
+    cout << "start of program!" << endl;
+
+    write_struct *write_args = (write_struct *) malloc(sizeof(struct write_struct));
 
   /*---------------------------------------------------
        FRAME CAPTURE/STORAGE + COLLISION DETECTION
@@ -122,11 +127,14 @@ int main(){
         // changed). Flag if particular signal exceeds test threshold
         // otherwise, proceed with continuous footage capture 
         if (
+/*
 	#ifdef ADC
 	(test_adc->getNumericValue() > TEST_THRESHOLD) ||
 	#endif
+*/
         (test_count >= max_count)){
-		#ifdef ADC
+/*
+            #ifdef ADC
             if (test_adc->getNumericValue() > TEST_THRESHOLD){
                  detected = true;
                  collision = true;
@@ -135,6 +143,7 @@ int main(){
                  signals << "\n";
              }
 		#endif
+*/
              save = true;
 	     limit = POSTTIME;
         }
