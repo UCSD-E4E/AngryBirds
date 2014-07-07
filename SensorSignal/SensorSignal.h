@@ -7,7 +7,7 @@
 #include <iostream>
 #include <unistd.h>
 #include <stdio.h>
-#include "BlackLib.h"
+#include "../BlackLib/BlackLib.h"
 
 using namespace std;
 
