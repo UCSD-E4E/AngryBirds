@@ -1,4 +1,6 @@
 /* Filename: test_main.cpp
+ * Author(s):  
+ * Date: 8/8/14
  */
 
 #include "opencv2/core/core.hpp"
@@ -50,14 +52,14 @@ int main()
     Mat     frame;
     queue   <Mat> frames;
     deque   <int> sensor_signal;   
-    deque   <int> averaged_signal;     // DUSTIN 
+    deque   <int> averaged_signal;       // DUSTIN 
     struct  stat st;               
     string  vid_id;               
     float   average_signal  = 0;
     float   normal_signal   = 0;        
-    int     frame_count     = 0;       // For Testing Purposes
-    int     test_count      = 0;       // For Testing Purposes 
-    int     max_count       = 50;      // For Testing Purposes
+    int     frame_count     = 0;         // For Testing Purposes
+    int     test_count      = 0;         // For Testing Purposes 
+    int     max_count       = 50;        // For Testing Purposes
     int     limit           = PRETIME;  
     bool    save            = false;
     bool    detected        = false;
@@ -71,17 +73,22 @@ int main()
      FRAME CAPTURE / STORAGE + COLLISION DETECTION
     -----------------------------------------------*/
 
+    /* Open video no.0 */
     VideoCapture input_cap(0);
  
+    /* Set (lower) the resolution for the webcam 
+     * (original res: 1280 x 720) */
     input_cap.set(CV_CAP_PROP_FRAME_WIDTH, X_RESOLUTION);
     input_cap.set(CV_CAP_PROP_FRAME_HEIGHT, Y_RESOLUTION);
 
+    /* Open the camera for capturing, if failure, terminate */
     if (!input_cap.isOpened())
     {
         cout << "\nINPUT VIDEO COULD NOT BE OPENED\n" << endl;
         return -1;
     }
   
+    /* Read in each frame for storage and processing */
     while(input_cap.read(frame))
     {
         if(frames.size() >= limit)
@@ -93,9 +100,12 @@ int main()
         {
             frames.push(frame.clone());
         }
-
-        if ((test_count >= max_count) || 
-            (test_adc->getNumericValue() > TEST_THRESHOLD))
+ 
+        /* Basic test condition (for testing purposes - to be 
+         * changed). Flag if particular signal exceeds test threshold
+         * otherwise, proceed with continuous footage capture */
+        if ((test_adc->getNumericValue() > TEST_THRESHOLD) ||
+            (test_count >= max_count))
         {
             if (test_adc->getNumericValue() > TEST_THRESHOLD) 
             {
@@ -112,7 +122,7 @@ int main()
             cout << "SAVE: " << save << endl;   
         }
 	
-        // Collision detected, save queue to write to file 
+        /* Event detected, save queue to write to output file */
         if((save) && (frames.size() >= limit))
         { 
             if (DEBUG)
@@ -130,6 +140,7 @@ int main()
 
             if (DEBUG) {cout << "\nCREATING VIDEO\n" << endl;}
 
+            /* Create the output destination */
             create_directory(path, st);
             vid_id = create_id(path, collision);
 	    VideoWriter output_cap(vid_id, 
@@ -146,6 +157,7 @@ int main()
 
             if (DEBUG) {cout << "\nPUSHING FRAMES\n" << endl;}
 
+            /* Write collision seqeuence to output file */
             while(!frames.empty())
             {
                 if (DEBUG) {cout << "WRITING FRAME: " << frame_count << endl;}
@@ -165,6 +177,7 @@ int main()
         }
         test_count++;
     }
+    /* Exit */
     input_cap.release();
 }
 
