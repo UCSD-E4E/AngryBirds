@@ -1,7 +1,10 @@
 #! /bin/bash
 
-./test_main&
-PID=$!
-echo $PID
-sleep 120       # 14400 SEC = 4 HRS
-kill $PID
+# printf "file '%s'\n" ./*.avi > vid_list.txt
+#for file in /home/ubuntu/AngryBirds/SDCard/videos/*; do `ffmpeg -i $file $file.mp3`;done
+
+#./test_main&
+#PID=$!
+#echo $PID
+#sleep 120       # 14400 SEC = 4 HRS
+#kill $PID

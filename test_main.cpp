@@ -11,11 +11,13 @@
 #include <queue>
 #include <deque>
 #include <string>
+#include <thread>
 #include <fstream>
 #include <iostream>
 #include <stdio.h>
 #include <termios.h>
 #include <unistd.h>
+#include <pthread.h>
 #include "BlackLib.h"
 #include "SensorSignal.h"
 
@@ -26,8 +28,8 @@ using namespace std;
              PREPROCESSOR CONSTANTS
   -------------------------------------------------*/
 #define DEBUG	         true
-#define PRETIME	         100
-#define POSTTIME         1500
+#define PRETIME	         50    // 100
+#define POSTTIME         100    // 1500
 #define FPS 	         20
 #define X_RESOLUTION     352
 #define Y_RESOLUTION     288
@@ -42,37 +44,50 @@ using namespace std;
   -----------------------------------------------------*/
 void create_directory(const char *path, struct stat &st);
 string create_id(const char *path, bool collision);
+//void update_frames(queue<Mat> &frames, Mat &frame, int limit);
+void *update_frames(void* update_args);
 string get_date();
+
+// Struct containing necessary values for update_frames function
+struct update_struct
+{
+    queue<Mat> frames;
+    Mat frame;
+    int limit;
+};
 
 int main()
 {
   /*---------------------------------------------------
           VARIABLE DECLARATIONS / INITIALIZATION
     ---------------------------------------------------*/
-    Mat     frame;
-    queue   <Mat> frames;
-    deque   <int> sensor_signal;
-    deque   <int> averaged_signal;       // DUSTIN
-    struct  stat st;
-    string  vid_id;
-    float   average_signal  = 0;
-    float   normal_signal   = 0;
-    int     frame_count     = 0;         // For Testing Purposes
-    int     test_count      = 0;         // For Testing Purposes
-    int     max_count       = 50;        // For Testing Purposes
-    int     limit           = PRETIME;
-    bool    save            = false;
-    bool    detected        = false;
-    bool    collision       = false;
-
+    Mat         frame;
+    queue       <Mat> frames;
+    deque       <int> sensor_signal;
+    deque       <int> averaged_signal;       // DUSTIN
+    struct      stat st;
+    struct      update_struct update_args;
+    string      vid_id;
+    pthread_t   update_thread;
+    float       average_signal  = 0;
+    float       normal_signal   = 0;
+    int         thread_ret      = 0;
+    int         frame_count     = 0;         // For Testing Purposes
+    int         test_count      = 0;         // For Testing Purposes
+    int         max_count       = 50;        // For Testing Purposes
+    int         limit           = PRETIME;
+    bool        save            = false;
+    bool        detected        = false;
+    bool        collision       = false;
+   
     //Get the input from adc
-    BlackADC* test_adc = new BlackADC(AIN4);
+    BlackADC *test_adc = new BlackADC(AIN4);
     //Path to save video files
-    const char * path = "/home/ubuntu/AngryBirds/SDCard/videos/";
+    const char *path = "/home/ubuntu/AngryBirds/SDCard/videos/";
     ofstream signals;
 
   /*---------------------------------------------------
-       FRAME CAPTURE / STORAGE + COLLISION DETECTION
+       FRAME CAPTURE/STORAGE + COLLISION DETECTION
     ---------------------------------------------------*/
     // Open video capture device #0
     VideoCapture input_cap(0);
@@ -139,7 +154,7 @@ int main()
             if (DEBUG){
                 if (detected){
                     cout << "\nEVENT TRIGGERED!\n" << endl;
-                    //collision = true;
+                    collision = true;
                 } else {
                     cout << "\nSAVING SCHEDULED NON-COLLISON CLIP\n" << endl;
                 }
@@ -149,8 +164,8 @@ int main()
 
             if (DEBUG) {cout << "\nCREATING VIDEO\n" << endl;}
 
-            // Create the output destination
-	    //Checks if directory already exists before creating new dir
+	    // Create the output destination. Check if directory
+            // already exists before creating new directory
             create_directory(path, st);
             vid_id = create_id(path, collision);
 	    VideoWriter output_cap(vid_id,
@@ -159,12 +174,29 @@ int main()
                                    Size(X_RESOLUTION, Y_RESOLUTION), 
                                    true);
 
-            if(!output_cap.isOpened()) {
+            if(!output_cap.isOpened()) 
+            {
                 cout << "\nOUTPUT VIDEO COULD NOT BE OPENED\n" << endl;
                 return -1;
             }
 
             if (DEBUG) {cout << "\nPUSHING FRAMES\n" << endl;}
+
+            // Create the thread that will update the queue of video frames
+            // while we are writing the current queue of frames to the ouput
+            // file  
+	    //!!thread update_thread(update_frames, frames, frame, limit); 
+            pthread_create(&update_thread,
+                                        NULL,
+                                        update_frames,
+                                        (void*)&update_args);
+
+            // Check whether we can create the new thread
+            if (!thread_ret)
+            {
+                cout << "\nERROR CREATING THREAD\n" << endl;
+                exit(EXIT_FAILURE);
+            }
 
             // Write collision seqeuence to output file
             while(!frames.empty()){
@@ -173,7 +205,11 @@ int main()
                 frames.pop();
                 frame_count += 1;
             }
-            
+
+            // What if ... writing operations takes longer reading operations ?
+            // videoWriter's pushing/popping is slower than frame capture's 
+            // pusing/popping ... what will happen ? 
+            pthread_join(update_thread, NULL);
             frame_count = 0;
 
             if (DEBUG) {cout << "\nDONE WRITING\n" << endl;}
@@ -197,10 +233,21 @@ int main()
 /*---------------------------------------------------------
                   FUNCTION DEFINITIONS
   ---------------------------------------------------------*/
+/* For testing purposes ...
+void print_hello(string msg) 
+{
+    int i = 0;
+    while (i < 100) 
+    {
+        cout << "\n" + msg + "\n" << endl; 
+    }
+}
+*/
+
+
 /* Description: Creates a new directory to store footage if
- *              it doesn't exist
+ *              it doesn't exist already
  */
-<<<<<<< HEAD
 void create_directory(const char *path, struct stat &st) 
 {
     if(stat(path, &st) != 0) 
@@ -233,6 +280,7 @@ string get_date()
     return(string(buffer));
 }
 
+
 /* Description: Creates a new ID to name output video file
  *              in format "Year-Month-Day Hour_Minute_Second"
  */
@@ -244,6 +292,26 @@ string create_id(const char *path, bool collision)
     }
     // No Collision
     return( path + get_date() + "_NC" + ".avi");
+}
+
+
+/* Description: 
+ */
+//!!void update_frames(queue<Mat> &frames, Mat &frame, int limit)
+void *update_frames(void *update_args)
+{
+    cout << "\nINSIDE UPDATE FRAMES\n" << endl;
+    struct update_struct *args = (struct update_struct*)update_args;
+
+    if((args->frames).size() >= (args->limit))
+    {
+	(args->frames).pop();
+        (args->frames).push((args->frame).clone());
+    }
+    else
+    {
+        (args->frames).push((args->frame).clone());
+    }
 }
 
 //-----EOF-----

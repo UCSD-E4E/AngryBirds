@@ -4,14 +4,14 @@
 
 #To compile the normal program, type in "make main"
 
-GCC = g++ -O2 -std=c++0x
-
+GCC = g++ -O2 -std=c++0x 
+CXXLIBS = -lpthread
 all: main test testSig SensorSignal analog_stream test_main
 
 main: main.o BlackLib.o SensorSignal.o
 	$(GCC) -o main main.o BlackLib.o SensorSignal.o `pkg-config --libs opencv`
 test_main: test_main.o BlackLib.o SensorSignal.o
-	$(GCC) -o test_main test_main.o BlackLib.o SensorSignal.o `pkg-config --libs opencv`
+	$(GCC) -o test_main test_main.o BlackLib.o SensorSignal.o `pkg-config --libs opencv` $(CXXLIBS)
 analog_stream: analog_stream.cpp BlackLib.h BlackLib.cpp
 	$(GCC) -o analog_stream analog_stream.cpp BlackLib.cpp
 test: test.cpp
@@ -24,7 +24,7 @@ SensorSignal: SensorSignal.cpp BlackLib.h BlackLib.cpp
 main.o: main.cpp
 	$(GCC) -c main.cpp
 test_main.o: test_main.cpp
-	$(GCC) -c test_main.cpp
+	$(GCC) -c test_main.cpp $(CXXLIBS)
 BlackLib.o: BlackLib.cpp
 	$(GCC) -c BlackLib.cpp
 SensorSignal.o: SensorSignal.cpp
