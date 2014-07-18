@@ -1,0 +1,50 @@
+kernel_file=zImage
+initrd_file=initrd.img
+
+##Video: [ls /sys/class/drm/]
+##Docs: https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/Documentation/fb/modedb.txt
+##Uncomment to override:
+#kms_force_mode=video=HDMI-A-1:1024x768@60e
+
+##Enable systemd
+#initopts=quiet init=/lib/systemd/systemd
+
+##init-eMMC-flasher.sh
+#initopts=init=/opt/scripts/tools/init-eMMC-flasher.sh
+
+##BeagleBone Cape Overrides
+
+##BeagleBone Black:
+##Disable HDMI/eMMC
+#cape_disable=capemgr.disable_partno=BB-BONELT-HDMI,BB-BONELT-HDMIN,BB-BONE-EMMC-2G
+
+##Disable HDMI
+#cape_disable=capemgr.disable_partno=BB-BONELT-HDMI,BB-BONELT-HDMIN
+
+##Audio Cape (needs HDMI Audio disabled)
+#cape_disable=capemgr.disable_partno=BB-BONELT-HDMI
+#cape_enable=capemgr.enable_partno=BB-BONE-AUDI-02
+
+##Example
+#cape_disable=capemgr.disable_partno=
+#cape_enable=capemgr.enable_partno=
+
+##WIP: v3.14+ capes..
+#cape=ttyO1
+#cape=
+
+console=ttyO0,115200n8
+
+mmcroot=UUID=fa1b2002-8cd9-4996-9e0c-b84b6f4e114e ro
+mmcrootfstype=ext4 rootwait fixrtc
+
+loadkernel=load mmc ${mmcdev}:${mmcpart} 0x82000000 ${kernel_file}
+loadinitrd=load mmc ${mmcdev}:${mmcpart} 0x88080000 ${initrd_file}; setenv initrd_size ${filesize}
+loadfdt=load mmc ${mmcdev}:${mmcpart} 0x88000000 /dtbs/${fdtfile}
+
+loadfiles=run loadkernel; run loadinitrd; run loadfdt
+
+mmcargs=setenv bootargs console=tty0 console=${console} ${optargs} ${cape_disable} ${cape_enable} ${kms_force_mode} root=${mmcroot} rootfstype=${mmcrootfstype} ${initopts}
+
+uenvcmd=run loadfiles; run mmcargs; bootz 0x82000000 0x88080000:${initrd_size} 0x88000000
+#
