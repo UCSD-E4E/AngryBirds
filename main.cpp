@@ -96,7 +96,7 @@ int main()
             // Create unique identifier for video file
             time(&rawtime);  
             timeinfo = localtime(&rawtime);
-            strftime(buffer, 80, "%F %T", timeinfo);
+            strftime(buffer, 80, "%F %H_%M_%S", timeinfo);
 	    string new_id = string(buffer);
             vid_id = path + new_id + ".avi";
 

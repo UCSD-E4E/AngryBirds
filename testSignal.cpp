@@ -5,8 +5,20 @@
 
 #include "BlackLib.h"
 #include <iostream>
-#include <conio.h>
-#define SAMPLE_RATE 1
+#include <time.h>
+
+#define SAMPLE_TIME 0 //In milliseconds
+
+
+using namespace std;
+
+//Method sleep copied from: http://ubuntuforums.org/showthread.php?t=296142
+void sleep(unsigned int mseconds)
+{
+    clock_t goal = mseconds + clock();
+    while (goal > clock());
+}
+
 void prompt()
 {
     cout << "Which Analog port would you like to receive from:" << endl;
@@ -17,45 +29,46 @@ void prompt()
     cout << "\t4: pin 33" << endl;
     cout << "\t5: pin 36" << endl;
     cout << "\t6: pin 35" << endl;
-
 }
 
 int main()
 {
     int input;
-    BlackADC Receiver;
+    BlackADC* Receiver;
     do
     {
 	prompt();
 	cin >> input;
-    }while(!(6 >= input && input >= 0));
+    } while(!(6 >= input && input >= 0));
+    
     switch(input)
     {
 	case 0:
-	    Receiver(AIN0);
+	    Receiver = new BlackADC(AIN0);
 	    break;
 	case 1:
-	    Receiver(AIN1);
+	    Receiver = new BlackADC(AIN1);
 	    break;
 	case 2:
-	    Receiver(AIN2);
+	    Receiver = new BlackADC(AIN2);
 	    break;
 	case 3:
-	    Receiver(AIN3);
+	    Receiver = new BlackADC(AIN3);
 	    break;
 	case 4:
-	    Receiver(AIN4);
+	    Receiver = new BlackADC(AIN4);
 	    break;
 	case 5:
-	    Receiver(AIN5);
+	    Receiver = new BlackADC(AIN5);
 	    break;
 	case 6:
-	    Receiver(AIN6);
+	    Receiver = new BlackADC(AIN6);
 	    break;
     }
 
     do
     {
-	cout << Receiver.
-    }while(!kbhit());
+	sleep(SAMPLE_TIME);
+	cout << Receiver->getNumericValue() << endl;
+    } while(1);
 }

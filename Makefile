@@ -5,6 +5,9 @@
 #To compile the normal program, type in "make main"
 
 GCC = g++ -O2 -std=c++0x
+
+all: main test testSig
+
 main: main.o BlackLib.o
 	$(GCC) -o main main.o BlackLib.o `pkg-config --libs opencv`
 test: test.cpp 
@@ -18,3 +21,5 @@ main.o: main.cpp
 BlackLib.o: BlackLib.cpp
 	$(GCC) -c BlackLib.cpp
 
+clean:
+	rm -rf *.o main test testSig
