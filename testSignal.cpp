@@ -1,14 +1,15 @@
-//Author: Dylan McNamara
-//Date Created: 07/18/2014
-//Date Modified: 07/18/2014
-//Description: Record Analog Input
+/* Author: Dylan McNamara
+ * Date Created: 07/18/2014
+ * Date Modified: 07/18/2014
+ * Description: Record Analog Input
+ */
 
 #include "BlackLib.h"
 #include <iostream>
 #include <time.h>
 
+//-----PREPROCESSING CONSTANTS-----
 #define SAMPLE_TIME 0 //In milliseconds
-
 
 using namespace std;
 
@@ -19,6 +20,7 @@ void sleep(unsigned int mseconds)
     while (goal > clock());
 }
 
+//Dislpays prompt asking which port to use to read analog input
 void prompt()
 {
     cout << "Which Analog port would you like to receive from:" << endl;
@@ -31,16 +33,19 @@ void prompt()
     cout << "\t6: pin 35" << endl;
 }
 
+
 int main()
 {
     int input;
     BlackADC* Receiver;
+    //Display prompt until user gives a valid input
     do
     {
 	prompt();
 	cin >> input;
     } while(!(6 >= input && input >= 0));
     
+    //Initialize BlackADC object with regards to a specific analog-in port
     switch(input)
     {
 	case 0:
@@ -66,6 +71,7 @@ int main()
 	    break;
     }
 
+    //Display Voltage across this port
     do
     {
 	sleep(SAMPLE_TIME);
