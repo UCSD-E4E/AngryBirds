@@ -1,6 +1,6 @@
 /* Filename: main.cpp
- * Author(s): Alireza *, Angela To, Dylan McNamara
- * Date Created: ?
+ * Author(s): Alireza Khodamoradi, Angela To, Dylan McNamara
+ * Date Created: 06/24/2014 
  * Date Modified: 07/18/2014
  * Description: Detects when a bird hits a mirror and records the collision:
  *	-Designed to work with the BeagleBone Black
