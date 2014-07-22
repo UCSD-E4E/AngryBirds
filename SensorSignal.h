@@ -19,12 +19,12 @@ class SensorSignal
     public:
         SensorSignal();
         void build_signal_deque(deque<int> &signal_deque, 
-                                const int sample_size);
-        float compute_average_signal(deque<int> &signal_deque, 
-                                     const int sample_size);
+                                const int window_size);
         float compute_normal_signal(deque<int> &signal_deque, 
-                                    const int average_signal, 
-                                    const int sample_size);
+                                    deque<int> &averaged_deque, 
+                                    const int window_size);
+        float compute_average_signal(deque<int> &signal_deque, 
+                                     const int window_size);
          
 };
 

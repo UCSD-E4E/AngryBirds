@@ -28,10 +28,10 @@ SensorSignal::SensorSignal()
  * AIN1 = pin 40
  */
 void SensorSignal::build_signal_deque(deque<int> &signal_deque,
-                                             const int sample_size) 
+                                      const int window_size) 
 {
     BlackADC* adc = new BlackADC(AIN0);
-    if (signal_deque.size() > sample_size) 
+    if (signal_deque.size() > window_size) 
     {
         signal_deque.pop_back();
         signal_deque.push_front(adc-> getNumericValue());
@@ -47,7 +47,7 @@ void SensorSignal::build_signal_deque(deque<int> &signal_deque,
  * (ground truth) sample size
  */
 float SensorSignal::compute_average_signal(deque<int> &signal_deque, 
-                                            const int sample_size)
+                                           const int window_size)
 {
     float sum;
     float average;
@@ -55,7 +55,7 @@ float SensorSignal::compute_average_signal(deque<int> &signal_deque,
     {
         sum += *itr;
     }
-    average = (sum / sample_size);
+    average = (sum / window_size);
     return average;
 }
 
@@ -63,19 +63,22 @@ float SensorSignal::compute_average_signal(deque<int> &signal_deque,
 /* Computes the normalized analog signal in which we can use to 
  * compare against a predetermined (ground truth) threshold value
  */
-float SensorSignal::compute_normal_signal(deque<int> &signal_deque,
-                                           const int average_signal,
-                                           const int sample_size) 
+float SensorSignal::compute_normal_signal(deque <int> &signal_deque,
+                                          deque <int> &averaged_deque,
+                                          const int window_size) 
 {
     float sum;
     float difference;
-    float normalized_signal;
+    float normalized_signal;  
+    
+    deque<int>::iterator s_itr = signal_deque.begin();
+    deque<int>::iterator a_itr = averaged_deque.begin();
 
-    for (deque<int>::iterator itr = signal_deque.begin(); itr != signal_deque.end(); ++itr) 
+    for (; s_itr != signal_deque.end(); ++s_itr, ++a_itr) 
     {
-        difference = (*itr - average_signal);
+        difference = (*s_itr - *a_itr);
         sum += difference;
     }
-    normalized_signal = (sum / sample_size);
+    normalized_signal = (sum / window_size);
 }
 

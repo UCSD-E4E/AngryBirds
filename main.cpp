@@ -31,19 +31,11 @@
 #define FPS 	 20
 #define X_RESOLUTION  320 	 
 #define Y_RESOLUTION  240 
-#define SAMPLE_SIZE 0    //!! NEED TO CHANGE
-#define GROUND_THRESHOLD 0 //!! NEED TO CHANGE
-/*
-#define CLEAR 0
-#define PEAK 1
-#define TROUGH 2
-#define HILL 3
-*/
+#define WINDOW_SIZE 0        //!! DUSTIN
+#define GROUND_THRESHOLD 0   //!! DUSTIN
+
 using namespace cv;
 using namespace std;
-
-// enum stages {CLEAR, PEAK, TROUGH, HILL}
-
 
 int main()
 {
@@ -57,6 +49,7 @@ int main()
     Mat frame;
     queue <Mat> frames;
     deque <int> sensor_signal;   
+    deque <int> averaged_signal; //!! DUSTIN 
 
     //if(PRELIM)
     //{ 
@@ -79,7 +72,7 @@ int main()
     //if(PRELIM)
     //{ 
 	int count = 0;
-	const int NClimit = 6000;  //NClimit -> frames before auto save
+	const int NClimit = 600;  //NClimit -> frames before auto save
     //}
 
 /*
@@ -185,10 +178,12 @@ int main()
 /*
         SensorSignal* s = new typename SensorSignal::SensorSignal();
         s->SensorSignal::build_signal_deque(sensor_signal, SAMPLE_SIZE);
+        normal_signal = s->SensorSignal::compute_normal_signal(sensor_signal, averaged_signal, WINDOW_SIZE);
+        //!! Not needed at the moment !!//
         average_signal = s->SensorSignal::compute_average_signal(sensor_signal, SAMPLE_SIZE);
-        normal_signal = s->SensorSignal::compute_normal_signal(sensor_signal, average_signal, SAMPLE_SIZE);
 */
-        normal_signal = -1; 
+ 
+        // normal_signal = -1; 
 	//!! Get input from sensor_signal !!// 
         if (normal_signal > GROUND_THRESHOLD) 
         {
