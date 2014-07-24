@@ -9,7 +9,7 @@
 #include <time.h>
 
 //-----PREPROCESSING CONSTANTS-----
-#define SAMPLE_TIME 0 //In milliseconds
+#define SAMPLE_TIME 1000 //In milliseconds
 
 using namespace std;
 

@@ -1,6 +1,6 @@
 /* Filename: main.cpp
- * Author(s): Alireza *, Angela To, Dylan McNamara
- * Date Created: ?
+ * Author(s): Alireza Khomadari, Angela To, Dylan McNamara
+ * Date Created: 06/12/2014
  * Date Modified: 07/18/2014
  * Description: Detects when a bird hits a mirror and records the collision:
  *	-Designed to work with the BeagleBone Black
@@ -22,10 +22,13 @@
 #include "BlackLib.h"
 
 //-----PREPROCESSOR CONSTANTS-----
-#define PRELIM true	// --false: Record video only from bird collisions
-#define DEBUG false
-#define PRETIME 20	// 10 FPS, 2 SEC
+#define PRELIM	 true	// --false: Record video only from bird collisions
+#define DEBUG	 true 
+#define PRETIME	 20	// 10 FPS, 2 SEC
 #define POSTTIME 40	// 4 additional seconds after detection
+#define FPS 	 10
+#define X_RESOLUTION 352 
+#define Y_RESOLUTION 288
 
 using namespace cv;
 using namespace std;
@@ -35,7 +38,13 @@ int main()
     // OpenCV Variables (used to capture video)
     VideoCapture input_cap(0);
     Mat frame;
+ 
     queue <Mat> frames;
+
+    // Set the resolution of the camera
+    input_cap.set(CV_CAP_PROP_FRAME_WIDTH, X_RESOLUTION);
+    input_cap.set(CV_CAP_PROP_FRAME_WIDTH, Y_RESOLUTION);
+   
     //if(PRELIM)
     //{ 
 	queue <Mat> NCBuff; 
@@ -45,13 +54,14 @@ int main()
     time_t rawtime;
     struct tm * timeinfo;
     struct stat st;
-    const char* path;
     char buffer[80];
     string vid_id;
-
+    const char* path;
+    path = "/home/ubuntu/SDCard/videos/";
     // Variables needed for logic of code
     int limit = PRETIME; 
     int save = 0;
+
     //if(PRELIM)
     //{ 
 	int count = 0;
@@ -70,30 +80,28 @@ int main()
         return -1;
     }
 
-    // Read each frame from the camera
     while(input_cap.read(frame))
     {
         // Limit the size of the buffer
+	if(DEBUG)
+        { cout << "number of frames saved = " << frames.size() << endl; }
+
         if(frames.size() >= limit)
         {
-	    if(DEBUG)
-            { printf("number of frames saved = %d\r\n", int(frames.size())); }
-            frames.pop();
-            frames.push(frame.clone());
+	                
 	    if(PRELIM)
 	    {
 		if(count % 4 == 0)
 		{
-		    // Save 1 of every 4 frames
+		    NCBuff.push(frames.front());// Save 1 of every 4 frames
 		}
 		count++;
 	    }
-
+	    frames.pop();
+            frames.push(frame.clone());
         }
         else
         {
-            if(DEBUG)
-	    { printf("number of frames saved = %d\r\n", int(frames.size())); }
             frames.push(frame.clone());
         }
 	
@@ -104,23 +112,21 @@ int main()
 	{
 	    if (count == NClimit)
 	    {
-		//Save the current video
+//TODO		//Save the current video
 		count = 0;
 	    }
 	}
 
 	// Check to see if analog input is greater than 1V (detects collision)
 	// If true, extend the buffer and flag for a save operation
-        if(test->getNumericValue() > 1000 /*i == 101*/)
+        if(test->getNumericValue() > 1000)
         {
             cout << "Event detected!" << endl;
             save = 1;
 	    limit = POSTTIME;
-	    cout << frames.size() << endl;
 	    if(DEBUG)
 	    {
 		cout << "Queue size extended" << endl; 
-		cout << frames.size() << endl;
 	    }
         }
 	
@@ -128,8 +134,7 @@ int main()
         if((save == 1) && (frames.size() >= limit))
         {   
             // Create new directory to store footage if it doesn't exist 
-            // path = "/home/e4e/opencv/samples/videos/";
-            path = "/home/ubuntu/SDCard/videos/";
+            
             if(stat(path, &st) != 0) 
             {
                 if(errno == ENOENT) 
@@ -152,11 +157,10 @@ int main()
 
 	   	VideoWriter output_cap(vid_id, 
                                    CV_FOURCC('M','J','P','G'), 
-                                   10.0, 
-                                   Size(input_cap.get(CV_CAP_PROP_FRAME_WIDTH), 
-                                   input_cap.get(CV_CAP_PROP_FRAME_HEIGHT)), 
+                                   FPS, 
+                                   Size(X_RESOLUTION, Y_RESOLUTION), 
                                    true);
-		    // Check and exit if there is an error saving the video
+		// Check and exit if there is an error saving the video
            	if(!output_cap.isOpened())
             	{
                     cout << "!!! Output video for NCBuff could not be opened"
@@ -184,9 +188,8 @@ int main()
 
 	    VideoWriter output_cap(vid_id, 
                                    CV_FOURCC('M','J','P','G'), 
-                                   10.0, 
-                                   Size(input_cap.get(CV_CAP_PROP_FRAME_WIDTH), 
-                                   input_cap.get(CV_CAP_PROP_FRAME_HEIGHT)), 
+                                   FPS, 
+                                   Size(X_RESOLUTION, Y_RESOLUTION), 
                                    true);
 	    // Check and exit if there is an error saving the video
             if(!output_cap.isOpened())
@@ -209,6 +212,11 @@ int main()
             save = 0;
 	    limit = PRETIME;
         }
+
+	//output_cap.write(frame);
+	//count++;
+	//cout << count << endl;
+
     }
 
     // Only exit the while loop if there is an error reading a frame
