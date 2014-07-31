@@ -29,9 +29,17 @@
 #define FPS 	 20
 #define X_RESOLUTION  320 //352 //320	 
 #define Y_RESOLUTION  240 //288 //240
+#define CLEAR 0
+#define PEAK 1
+#define TROUGH 2
+#define HILL 3
 
 using namespace cv;
 using namespace std;
+
+
+enum stages {CLEAR, PEAK, TROUGH, HILL}
+
 
 int main()
 {
@@ -57,14 +65,16 @@ int main()
     char buffer[80];
     string vid_id;
     const char* path;
+    
     // Variables needed for logic of code
     int limit = PRETIME; 
     int save = 0;
+    stages stage = CLEAR
 
     //if(PRELIM)
     //{ 
 	int count = 0;
-	const int NClimit = 60;  //NClimit -> frames before auto save
+	const int NClimit = 6000;  //NClimit -> frames before auto save
     //}
 
     // ADC Ground = pin 34
