@@ -29,13 +29,20 @@
 #define PRETIME	 20	// 10 FPS, 2 SEC
 #define POSTTIME 40	// 4 additional seconds after detection
 #define FPS 	 20
+<<<<<<< HEAD
 #define X_RESOLUTION  320 	 
 #define Y_RESOLUTION  240 
 #define SAMPLE_SIZE 0 //!! NEED TO CHANGE
 #define TRUE_THRESHOLD 0 //!! NEED TO CHANGE
+#define CLEAR 0
+#define PEAK 1
+#define TROUGH 2
+#define HILL 3
 
 using namespace cv;
 using namespace std;
+
+enum stages {CLEAR, PEAK, TROUGH, HILL}
 
 int main()
 {
@@ -66,11 +73,12 @@ int main()
     // Variables needed for logic of code
     int limit = PRETIME; 
     int save = 0;
+    stages stage = CLEAR
 
     //if(PRELIM)
     //{ 
 	int count = 0;
-	const int NClimit = 60;  //NClimit -> frames before auto save
+	const int NClimit = 6000;  //NClimit -> frames before auto save
     //}
 
     // ADC Ground = pin 34
