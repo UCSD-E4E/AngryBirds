@@ -14,12 +14,14 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <queue>
+#include <deque>
 #include <string>
 #include <iostream>
 #include <stdio.h>
 #include <termios.h>
 #include <unistd.h>
 #include "BlackLib.h"
+#include "SensorSignal.h"
 
 //-----PREPROCESSOR CONSTANTS-----
 #define PRELIM	 true	// --false: Record video only from bird collisions
@@ -27,8 +29,10 @@
 #define PRETIME	 20	// 10 FPS, 2 SEC
 #define POSTTIME 40	// 4 additional seconds after detection
 #define FPS 	 20
-#define X_RESOLUTION  320 //352 //320	 
-#define Y_RESOLUTION  240 //288 //240
+#define X_RESOLUTION  320 	 
+#define Y_RESOLUTION  240 
+#define SAMPLE_SIZE 0 //!! NEED TO CHANGE
+#define TRUE_THRESHOLD 0 //!! NEED TO CHANGE
 
 using namespace cv;
 using namespace std;
@@ -44,6 +48,7 @@ int main()
 
     Mat frame;
     queue <Mat> frames;
+    deque <int> sensor_signal;   
 
     //if(PRELIM)
     //{ 
@@ -57,6 +62,7 @@ int main()
     char buffer[80];
     string vid_id;
     const char* path;
+
     // Variables needed for logic of code
     int limit = PRETIME; 
     int save = 0;
@@ -72,8 +78,16 @@ int main()
     // AIN1 = pin 40
     BlackADC* test = new BlackADC(AIN0);
 
+    // Fle path for video storage
     path = "/home/ubuntu/SDCard/videos/";
-    
+     
+    // Variables needed for classifying waveform signal
+    float average_signal;
+    float normal_signal;
+	
+
+    /***************************************************************/
+
     // Check if the video feed was opened correctly
     if (!input_cap.isOpened())
     {
@@ -155,9 +169,21 @@ int main()
 		count = 0;
 	    }
 	}
-	// Check to see if analog input is greater than 1V (detects collision)
-	// If true, extend the buffer and flag for a save operation
-        if (test->getNumericValue() > 1000)
+
+//-------------------- COLLISION DETECTION ----------------------//
+
+        SensorSignal* s = new typename SensorSignal::SensorSignal();
+
+        s->SensorSignal::build_signal_deque(sensor_signal,
+                                         SAMPLE_SIZE);
+        average_signal = s->SensorSignal::compute_average_signal(sensor_signal, 
+                                                              SAMPLE_SIZE);
+        normal_signal = s->SensorSignal::compute_normal_signal(sensor_signal,
+                                                            average_signal, 
+                                                            SAMPLE_SIZE);
+
+	//!! Get input from sensor_signal !!// 
+        if (normal_signal > TRUE_THRESHOLD) 
         {
             cout << "Event detected!" << endl;
             save = 1;
