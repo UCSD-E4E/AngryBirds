@@ -9,8 +9,8 @@
  */
 
 #include "opencv2/core/core.hpp"
-#include <time.h>
 #include "opencv2/highgui/highgui.hpp"
+#include <time.h>
 #include <errno.h>
 #include <sys/stat.h>
 #include <queue>
@@ -26,9 +26,9 @@
 #define DEBUG	 true 
 #define PRETIME	 20	// 10 FPS, 2 SEC
 #define POSTTIME 40	// 4 additional seconds after detection
-#define FPS 	 10
-#define X_RESOLUTION 352 
-#define Y_RESOLUTION 288
+#define FPS 	 20
+#define X_RESOLUTION  320 //352 //320	 
+#define Y_RESOLUTION  240 //288 //240
 
 using namespace cv;
 using namespace std;
@@ -37,14 +37,14 @@ int main()
 {
     // OpenCV Variables (used to capture video)
     VideoCapture input_cap(0);
-    Mat frame;
  
-    queue <Mat> frames;
-
     // Set the resolution of the camera
     input_cap.set(CV_CAP_PROP_FRAME_WIDTH, X_RESOLUTION);
-    input_cap.set(CV_CAP_PROP_FRAME_WIDTH, Y_RESOLUTION);
-   
+    input_cap.set(CV_CAP_PROP_FRAME_HEIGHT, Y_RESOLUTION);
+
+    Mat frame;
+    queue <Mat> frames;
+
     //if(PRELIM)
     //{ 
 	queue <Mat> NCBuff; 
@@ -57,7 +57,6 @@ int main()
     char buffer[80];
     string vid_id;
     const char* path;
-    path = "/home/ubuntu/SDCard/videos/";
     // Variables needed for logic of code
     int limit = PRETIME; 
     int save = 0;
@@ -65,13 +64,15 @@ int main()
     //if(PRELIM)
     //{ 
 	int count = 0;
-	const int NClimit = 2000000;
+	const int NClimit = 60;  //NClimit -> frames before auto save
     //}
 
     // ADC Ground = pin 34
     // AIN0 = pin 39
     // AIN1 = pin 40
     BlackADC* test = new BlackADC(AIN0);
+
+    path = "/home/ubuntu/SDCard/videos/";
     
     // Check if the video feed was opened correctly
     if (!input_cap.isOpened())
@@ -112,14 +113,51 @@ int main()
 	{
 	    if (count == NClimit)
 	    {
-//TODO		//Save the current video
+		//Save the current video
+		// Create new directory to store footage if it doesn't exist 
+                if(stat(path, &st) != 0) 
+            	{
+                    if(errno == ENOENT) 
+                    {
+                    	cout << "Creating a new video directory" << endl;
+                    	if(mkdir(path, S_IRWXU|S_IRWXG|S_IROTH|S_IXOTH) == 0)
+                    	{ perror("mkdir"); }
+                    }
+            	}
+            	// Create saved for noncollision video
+		time(&rawtime);  
+        	timeinfo = localtime(&rawtime);
+		strftime(buffer, 80, "%F %H_%M_%S", timeinfo);
+		string new_id = string(buffer) + "NO_COLLISION";
+		vid_id = path + new_id + ".avi";
+
+	   	VideoWriter output_cap(vid_id, 
+                                   CV_FOURCC('M','J','P','G'),
+                                   FPS, 
+                                   Size(X_RESOLUTION, Y_RESOLUTION), 
+                                   true);
+		// Check and exit if there is an error saving the video
+           	if(!output_cap.isOpened())
+            	{
+                    cout << "!!! Output video for NCBuff could not be"
+		    	 <<" opened" << endl;
+            	}
+		else    // Push the frames from the buffer to the save file
+		{
+           	    while(!NCBuff.empty())
+            	    {
+                        output_cap.write(NCBuff.front());
+                        NCBuff.pop();
+	  	        cout << "Non-Collision Video Saved" << endl;
+		    }
+		}
+		output_cap.release();
 		count = 0;
 	    }
 	}
-
 	// Check to see if analog input is greater than 1V (detects collision)
 	// If true, extend the buffer and flag for a save operation
-        if(test->getNumericValue() > 1000)
+        if (test->getNumericValue() > 1000)
         {
             cout << "Event detected!" << endl;
             save = 1;
@@ -134,7 +172,6 @@ int main()
         if((save == 1) && (frames.size() >= limit))
         {   
             // Create new directory to store footage if it doesn't exist 
-            
             if(stat(path, &st) != 0) 
             {
                 if(errno == ENOENT) 
@@ -156,7 +193,7 @@ int main()
 		vid_id = path + new_id + ".avi";
 
 	   	VideoWriter output_cap(vid_id, 
-                                   CV_FOURCC('M','J','P','G'), 
+                                   CV_FOURCC('M','J','P','G'),
                                    FPS, 
                                    Size(X_RESOLUTION, Y_RESOLUTION), 
                                    true);
@@ -187,7 +224,7 @@ int main()
             vid_id = path + new_id + ".avi";
 
 	    VideoWriter output_cap(vid_id, 
-                                   CV_FOURCC('M','J','P','G'), 
+                                   CV_FOURCC('M','J','P','G'),
                                    FPS, 
                                    Size(X_RESOLUTION, Y_RESOLUTION), 
                                    true);
@@ -212,11 +249,6 @@ int main()
             save = 0;
 	    limit = PRETIME;
         }
-
-	//output_cap.write(frame);
-	//count++;
-	//cout << count << endl;
-
     }
 
     // Only exit the while loop if there is an error reading a frame

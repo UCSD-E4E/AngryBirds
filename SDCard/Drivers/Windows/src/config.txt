@@ -1,5 +1,0 @@
-;!@Install@!UTF-8!
-Title="BeagleBoard Drivers Archive"
-Progress="yes"
-ExecuteFile="dpinst.exe"
-;!@InstallEnd@!
