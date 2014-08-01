@@ -65,7 +65,7 @@ void loop() {
     // write the date and time
       for (int i = 0; i < dateAndTimeToWrite.length(); i++)
         serial.write(dateAndTimeToWrite.charAt(i));
-    delay(2000); // delay a couple seconds so we don't send the time more than once
+    delay(5000); // delay a few seconds so we don't send the time more than once
   }
   else 
     Serial.println("No connection");
