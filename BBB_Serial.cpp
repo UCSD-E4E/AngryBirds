@@ -29,7 +29,7 @@ char[] getDateAndTimeFromArduino()
     openSerialPort();                                                      // Open serial port at baud rate of 115200 
 
     // tell the Arduino that we want the date and time
-    Ret=LS.WriteString(“@\n”);                                             // Send the command on the serial port
+    Ret=LS.WriteString(“S\n”);                                             // Send the command on the serial port
     if (Ret!=1) {                                                           // If the writting operation failed ...
         printf ("Error while writing data!\n”);                              // ... display a message ...
         return Ret;                                                         // ... quit the application.
