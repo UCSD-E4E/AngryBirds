@@ -13,8 +13,8 @@ using namespace std;
 
 class SensorSignal
 {
-    private:
-        deque<int> sensor_signal;
+//    private:
+//        deque<int> sensor_signal;
 
     public:
         SensorSignal();
@@ -27,6 +27,7 @@ class SensorSignal
                                     const int sample_size);
          
 };
+
 #endif // EOF
 
 

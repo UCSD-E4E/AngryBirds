@@ -31,8 +31,8 @@
 #define FPS 	 20
 #define X_RESOLUTION  320 	 
 #define Y_RESOLUTION  240 
-#define SAMPLE_SIZE 0 //!! NEED TO CHANGE
-#define TRUE_THRESHOLD 0 //!! NEED TO CHANGE
+#define SAMPLE_SIZE 0    //!! NEED TO CHANGE
+#define GROUND_THRESHOLD 0 //!! NEED TO CHANGE
 /*
 #define CLEAR 0
 #define PEAK 1
@@ -82,10 +82,12 @@ int main()
 	const int NClimit = 6000;  //NClimit -> frames before auto save
     //}
 
+/*
     // ADC Ground = pin 34
     // AIN0 = pin 39
     // AIN1 = pin 40
     BlackADC* test = new BlackADC(AIN0);
+*/
 
     // Fle path for video storage
     path = "/home/ubuntu/SDCard/videos/";
@@ -112,7 +114,6 @@ int main()
 
         if(frames.size() >= limit)
         {
-	                
 	    if(PRELIM)
 	    {
 		if(count % 4 == 0)
@@ -181,13 +182,15 @@ int main()
 
 //-------------------- COLLISION DETECTION ----------------------//
 
+/*
         SensorSignal* s = new typename SensorSignal::SensorSignal();
         s->SensorSignal::build_signal_deque(sensor_signal, SAMPLE_SIZE);
         average_signal = s->SensorSignal::compute_average_signal(sensor_signal, SAMPLE_SIZE);
         normal_signal = s->SensorSignal::compute_normal_signal(sensor_signal, average_signal, SAMPLE_SIZE);
-
+*/
+        normal_signal = -1; 
 	//!! Get input from sensor_signal !!// 
-        if (normal_signal > TRUE_THRESHOLD) 
+        if (normal_signal > GROUND_THRESHOLD) 
         {
             cout << "Event detected!" << endl;
             save = 1;

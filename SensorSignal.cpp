@@ -1,7 +1,7 @@
 /* Filename: SensorSignal.cpp
  * Author: Angela To
- * Date:
- * Description:
+ * Date: 8/1/2014
+ * Description: Helper functions to classify analog waveform readings
  */
 
 #include "SensorSignal.h"
@@ -20,8 +20,12 @@ SensorSignal::SensorSignal()
 
 
 
-/*
+/* Builds and maintains a continuous buffer for storing and 
+ * processing analog waveform signals 
  *
+ * ADC Ground = pin 34
+ * AIN0 = pin 39
+ * AIN1 = pin 40
  */
 void SensorSignal::build_signal_deque(deque<int> &signal_deque,
                                              const int sample_size) 
@@ -39,8 +43,8 @@ void SensorSignal::build_signal_deque(deque<int> &signal_deque,
 }
 
 
-/*
- *
+/* Computes the averaged analog signal based on a predetermined 
+ * (ground truth) sample size
  */
 float SensorSignal::compute_average_signal(deque<int> &signal_deque, 
                                             const int sample_size)
@@ -56,16 +60,16 @@ float SensorSignal::compute_average_signal(deque<int> &signal_deque,
 }
 
 
-/*
- *
+/* Computes the normalized analog signal in which we can use to 
+ * compare against a predetermined (ground truth) threshold value
  */
 float SensorSignal::compute_normal_signal(deque<int> &signal_deque,
                                            const int average_signal,
                                            const int sample_size) 
 {
     float sum;
-    int difference;
-    int normalized_signal;
+    float difference;
+    float normalized_signal;
 
     for (deque<int>::iterator itr = signal_deque.begin(); itr != signal_deque.end(); ++itr) 
     {
