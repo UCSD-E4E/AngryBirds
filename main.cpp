@@ -6,6 +6,10 @@
  *	-Designed to work with the BeagleBone Black
  *	-Uses OpenCV Libraries to read input from a camera
  *	-Uses BlackLib Library to read analog input from BeagleBone Black
+ * Notes: 
+ *      - Non-Collision videos are 5 sec each (separated by a count=100)
+ *      - Collision videos are 35 seconds each (5 sec before collision, 30
+ *       sec after collision)
  */
 
 #include "opencv2/core/core.hpp"
@@ -26,11 +30,11 @@
 //-----PREPROCESSOR CONSTANTS-----
 #define PRELIM	 true	// --false: Record video only from bird collisions
 #define DEBUG	 true 
-#define PRETIME	 20	// 10 FPS, 2 SEC
-#define POSTTIME 40	// 4 additional seconds after detection
+#define PRETIME	 100	// 100 PRETIME / 20 FPS = 5 SEC (Before Collision) 
+#define POSTTIME 700	// 700 / 20 FPS = 35 SEC TOTAL (30 SEC After Collision)
 #define FPS 	 20
-#define X_RESOLUTION  320 	 
-#define Y_RESOLUTION  240 
+#define X_RESOLUTION  1280 	 
+#define Y_RESOLUTION  720
 #define WINDOW_SIZE 0        //!! DUSTIN
 #define GROUND_THRESHOLD 0   //!! DUSTIN
 
@@ -72,7 +76,7 @@ int main()
     //if(PRELIM)
     //{ 
 	int count = 0;
-	const int NClimit = 60;  //NClimit -> frames before auto save
+	const int NClimit = 100;  //NClimit -> frames before auto save
     //}
 
     // Fle path for video storage
@@ -102,10 +106,11 @@ int main()
         {
 	    if(PRELIM)
 	    {
-		if(count % 4 == 0)
-		{
-		    NCBuff.push(frames.front());// Save 1 of every 4 frames
-		}
+                // Save every fourth frame
+		//if(count % 4 == 0)
+		//{
+		      NCBuff.push(frames.front());
+		//}
 		count++;
 	    }
 	    frames.pop();
@@ -121,8 +126,10 @@ int main()
 	//	-Reset count and buffer
 	if(PRELIM)
 	{
+            cout << "COUNT: " << count << endl;    
 	    if (count == NClimit)
 	    {
+                cout << "\nNO COLLISION LIMIT REACHED\n" << endl;
 		//Save the current video
 		// Create new directory to store footage if it doesn't exist 
                 if(stat(path, &st) != 0) 
