@@ -11,7 +11,8 @@
  *      - Collision videos are 35 seconds each (5 sec before collision, 30
  *        sec after collision)
  *      (8/7/14) - Changed test_adc conditional threshold to 1000 
- *                 (TEST_THRESHOLD - for testing (w/o) sensor circuits) purpose) *                 Should change back once circuit is reconnected!
+ *                 (TEST_THRESHOLD - for testing (w/o) sensor circuits) purpose) 
+ *                 Should change back once circuit is reconnected!
  */
 
 #include "opencv2/core/core.hpp"
