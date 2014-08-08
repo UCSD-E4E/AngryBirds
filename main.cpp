@@ -6,6 +6,12 @@
  *	-Designed to work with the BeagleBone Black
  *	-Uses OpenCV Libraries to read input from a camera
  *	-Uses BlackLib Library to read analog input from BeagleBone Black
+ * Notes: 
+ *      - Non-Collision videos are 5 sec each (separated by a count=100)
+ *      - Collision videos are 35 seconds each (5 sec before collision, 30
+ *        sec after collision)
+ *      (8/7/14) - Changed test_adc conditional threshold to 1000 
+ *                 (TEST_THRESHOLD - for testing (w/o) sensor circuits) purpose) *                 Should change back once circuit is reconnected!
  */
 
 #include "opencv2/core/core.hpp"
@@ -26,19 +32,20 @@
 
 /* PREPROCESSOR CONSTANTS
  */
-#define PRELIM	 false	// Record video only from bird collisions
-#define DEBUG	 true 
-#define PRETIME	 40	// 
-#define POSTTIME 40	// 4 additional seconds after detection
+#define PRELIM	 true	     // Record ALL video
+#define DEBUG	 true        
+#define PRETIME	 100	     // 5 SEC (Before Collision) 
+#define POSTTIME 700	     // 35 SEC TOTAL (30 SEC After Collision)
 #define FPS 	 20
-#define X_RESOLUTION  320 	 
-#define Y_RESOLUTION  240
+#define X_RESOLUTION  1280   // 320	 
+#define Y_RESOLUTION  720    // 240
 #define WINDOW_SIZE 0        //!! DUSTIN
 #define GROUND_THRESHOLD 0   //!! DUSTIN
-
+#define TEST_THRESHOLD 1000  // For testing purposes. To be removed later
 
 using namespace cv;
 using namespace std;
+
 
 
 /* HELPER FUNCTION PROTOTYPES
@@ -47,11 +54,11 @@ void create_directory(const char *path, struct stat &st);
 string create_id(const char *path);
 
 
+
 /*
  */
 int main()
 {
-
     Mat frame;
     queue <Mat> frames;
     deque <int> sensor_signal;   
@@ -78,6 +85,7 @@ int main()
 //    }
 
 
+
 /*---------------------------------------------------------------------*/
 
     VideoCapture input_cap(0);
@@ -101,10 +109,10 @@ int main()
 	    if(PRELIM)
 	    {
                 // Save every fourth frame
-		if(count % 4 == 0)
-		{
-		    NCBuff.push(frames.front());
-		}
+		//if(count % 4 == 0)
+		//{
+		      NCBuff.push(frames.front());
+		//}
 		count++;
 	    }
 	    frames.pop();
@@ -115,28 +123,33 @@ int main()
             frames.push(frame.clone());
         }
 	
-	// If too much time has passed: 
-	//	-Save video in the buffer
-	//	-Reset count and buffer
+	// If too much time has passed, save video in the 
+        // buffer, reset count and buffer 
 	if(PRELIM)
-	{
+	{   
+            if (DEBUG) { cout << "COUNT: " << count << endl; }
+            
 	    if (count == NClimit)
 	    {
+                if (DEBUG) {cout << "\nNO-COLLISION LIMIT REACHED\n" << endl;}
+
                 create_directory(path, st);
                 vid_id = create_id(path);
-
+                
 	   	VideoWriter output_cap(vid_id, 
                                    CV_FOURCC('M','J','P','G'),
                                    FPS, 
                                    Size(X_RESOLUTION, Y_RESOLUTION), 
                                    true);
-		// Check and exit if there is an error saving the video
-           	if(!output_cap.isOpened())
+		
+                // Check and exit if there is an error saving the video
+                // Otherwise, push the frames from the buffer to the save file 
+          	if(!output_cap.isOpened())
             	{
                     cout << "!!! Output video for NCBuff could not be"
 		    	 <<" opened" << endl;
             	}
-		else    // Push the frames from the buffer to the save file
+		else    
 		{
            	    while(!NCBuff.empty())
             	    {
@@ -163,18 +176,19 @@ int main()
         if (normal_signal > GROUND_THRESHOLD)
 */
 
+/*
         if (DEBUG) {
             cout << "ADC Analog Value: " << test_adc->getNumericValue() << endl;
         }
- 
-        if (test_adc->getNumericValue() > 60)
+*/ 
+        if (test_adc->getNumericValue() > TEST_THRESHOLD)
         {
             cout << "Event detected!" << endl;
             save = 1;
 	    limit = POSTTIME;
 	    if(DEBUG)
 	    {
-                cout << "ADC value exceeded 120!" << endl;
+                cout << "ADC value exceeded " << TEST_THRESHOLD << "!" << endl;
 		cout << "Queue size extended" << endl; 
 	    }
         }
@@ -183,22 +197,24 @@ int main()
         if((save == 1) && (frames.size() >= limit))
         {  
             create_directory(path, st);
+
             if(PRELIM)
 	    {
                 vid_id = create_id(path) + "NO_COLLISION";
+
                 VideoWriter output_cap(vid_id, 
                                        CV_FOURCC('M','J','P','G'),
                                        FPS, 
                                        Size(X_RESOLUTION, Y_RESOLUTION), 
                                        true);
 
-		// Check and exit if there is an error saving the video
+		// Check and exit if there is an error saving the video,
+                // Otherwise, push the frames from the buffer to save the file
            	if(!output_cap.isOpened())
             	{
                     cout << "!!! Output video for NCBuff could not be opened"
 			<< endl;
             	}
-                // Push the frames from the buffer to the save file
 		else	
 		{
            	    while(!NCBuff.empty())
@@ -226,10 +242,7 @@ int main()
                 return -1;
             }
 
-	    if(DEBUG)
-            {
-                cout << "Number of frames saved: " << frames.size() << endl; 
-            }
+	    if(DEBUG) { cout << "Number of frames saved: " << frames.size() << endl; }
 
 	    // Push the frames from the buffer to the save file
             while(!frames.empty())
