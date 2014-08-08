@@ -23,69 +23,68 @@
 #include "BlackLib.h"
 #include "SensorSignal.h"
 
-//-----PREPROCESSOR CONSTANTS-----
-#define PRELIM	 true	// --false: Record video only from bird collisions
+
+/* PREPROCESSOR CONSTANTS
+ */
+#define PRELIM	 false	// Record video only from bird collisions
 #define DEBUG	 true 
-#define PRETIME	 20	// 10 FPS, 2 SEC
+#define PRETIME	 40	// 
 #define POSTTIME 40	// 4 additional seconds after detection
 #define FPS 	 20
 #define X_RESOLUTION  320 	 
-#define Y_RESOLUTION  240 
+#define Y_RESOLUTION  240
 #define WINDOW_SIZE 0        //!! DUSTIN
 #define GROUND_THRESHOLD 0   //!! DUSTIN
+
 
 using namespace cv;
 using namespace std;
 
+
+/* HELPER FUNCTION PROTOTYPES
+ */
+void create_directory(const char *path, struct stat &st);
+string create_id(const char *path);
+
+
+/*
+ */
 int main()
 {
-    // OpenCV Variables (used to capture video)
-    VideoCapture input_cap(0);
- 
-    // Set the resolution of the camera
-    input_cap.set(CV_CAP_PROP_FRAME_WIDTH, X_RESOLUTION);
-    input_cap.set(CV_CAP_PROP_FRAME_HEIGHT, Y_RESOLUTION);
 
     Mat frame;
     queue <Mat> frames;
     deque <int> sensor_signal;   
     deque <int> averaged_signal; //!! DUSTIN 
 
-    //if(PRELIM)
-    //{ 
-	queue <Mat> NCBuff; 
-    //}
+    struct stat st;               
+    string vid_id;               
 
-    // Variables needed to create filename
-    time_t rawtime;
-    struct tm * timeinfo;
-    struct stat st;
-    char buffer[80];
-    string vid_id;
-    const char* path;
-
-    // Variables needed for logic of code
-    int limit = PRETIME; 
+    int limit = PRETIME;  
     int save = 0;
-    //stages stage = CLEAR
 
-    //if(PRELIM)
-    //{ 
-	int count = 0;
-	const int NClimit = 60;  //NClimit -> frames before auto save
-    //}
-
-    // Fle path for video storage
-    path = "/home/ubuntu/AngryBirds/SDCard/videos/";
-     
-    // Variables needed for classifying waveform signal
     float average_signal;
     float normal_signal;
 	
+    BlackADC* test_adc = new BlackADC(AIN4);
+    const char * path = "/home/ubuntu/AngryBirds/SDCard/videos/";
 
-    /***************************************************************/
 
-    // Check if the video feed was opened correctly
+//    if(PRELIM)
+//    {
+        queue <Mat> NCBuff; 
+	int count = 0;
+	const int NClimit = 600000;  //NClimit -> frames before auto save
+//    }
+
+
+/*---------------------------------------------------------------------*/
+
+    VideoCapture input_cap(0);
+ 
+    input_cap.set(CV_CAP_PROP_FRAME_WIDTH, X_RESOLUTION);
+    input_cap.set(CV_CAP_PROP_FRAME_HEIGHT, Y_RESOLUTION);
+
     if (!input_cap.isOpened())
     {
         cout << "!!! Input video could not be opened" << endl;
@@ -94,7 +93,6 @@ int main()
 
     while(input_cap.read(frame))
     {
-        // Limit the size of the buffer
 	if(DEBUG)
         { cout << "number of frames saved = " << frames.size() << endl; }
 
@@ -102,9 +100,10 @@ int main()
         {
 	    if(PRELIM)
 	    {
+                // Save every fourth frame
 		if(count % 4 == 0)
 		{
-		    NCBuff.push(frames.front());// Save 1 of every 4 frames
+		    NCBuff.push(frames.front());
 		}
 		count++;
 	    }
@@ -123,23 +122,8 @@ int main()
 	{
 	    if (count == NClimit)
 	    {
-		//Save the current video
-		// Create new directory to store footage if it doesn't exist 
-                if(stat(path, &st) != 0) 
-            	{
-                    if(errno == ENOENT) 
-                    {
-                    	cout << "Creating a new video directory" << endl;
-                    	if(mkdir(path, S_IRWXU|S_IRWXG|S_IROTH|S_IXOTH) == 0)
-                    	{ perror("mkdir"); }
-                    }
-            	}
-            	// Create saved for noncollision video
-		time(&rawtime);  
-        	timeinfo = localtime(&rawtime);
-		strftime(buffer, 80, "%F %H_%M_%S", timeinfo);
-		string new_id = string(buffer) + "NO_COLLISION";
-		vid_id = path + new_id + ".avi";
+                create_directory(path, st);
+                vid_id = create_id(path);
 
 	   	VideoWriter output_cap(vid_id, 
                                    CV_FOURCC('M','J','P','G'),
@@ -169,62 +153,53 @@ int main()
 //-------------------- COLLISION DETECTION ----------------------//
 
 /*
-        SensorSignal* s = new typename SensorSignal::SensorSignal();
+        SensorSignal * s = new typename SensorSignal::SensorSignal();
         s->SensorSignal::build_signal_deque(sensor_signal, SAMPLE_SIZE);
         normal_signal = s->SensorSignal::compute_normal_signal(sensor_signal, averaged_signal, WINDOW_SIZE);
         //!! Not needed at the moment !!//
         average_signal = s->SensorSignal::compute_average_signal(sensor_signal, SAMPLE_SIZE);
-*/
  
-        // normal_signal = -1; 
 	//!! Get input from sensor_signal !!// 
-        if (normal_signal > GROUND_THRESHOLD) 
+        if (normal_signal > GROUND_THRESHOLD)
+*/
+
+        if (DEBUG) {
+            cout << "ADC Analog Value: " << test_adc->getNumericValue() << endl;
+        }
+ 
+        if (test_adc->getNumericValue() > 60)
         {
             cout << "Event detected!" << endl;
             save = 1;
 	    limit = POSTTIME;
 	    if(DEBUG)
 	    {
+                cout << "ADC value exceeded 120!" << endl;
 		cout << "Queue size extended" << endl; 
 	    }
         }
 	
         // Collision detected, save queue to write to file 
         if((save == 1) && (frames.size() >= limit))
-        {   
-            // Create new directory to store footage if it doesn't exist 
-            if(stat(path, &st) != 0) 
-            {
-                if(errno == ENOENT) 
-                {
-                    cout << "Creating a new video directory" << endl;
-                    if(mkdir(path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == 0)
-                    {
-                       perror("mkdir");
-                    }
-                }
-            }
+        {  
+            create_directory(path, st);
             if(PRELIM)
 	    {
-            	// Create saved for noncollision video
-		time(&rawtime);  
-        	timeinfo = localtime(&rawtime);
-		strftime(buffer, 80, "%F %H_%M_%S", timeinfo);
-		string new_id = string(buffer) + "NO_COLLISION";
-		vid_id = path + new_id + ".avi";
+                vid_id = create_id(path) + "NO_COLLISION";
+                VideoWriter output_cap(vid_id, 
+                                       CV_FOURCC('M','J','P','G'),
+                                       FPS, 
+                                       Size(X_RESOLUTION, Y_RESOLUTION), 
+                                       true);
 
-	   	VideoWriter output_cap(vid_id, 
-                                   CV_FOURCC('M','J','P','G'),
-                                   FPS, 
-                                   Size(X_RESOLUTION, Y_RESOLUTION), 
-                                   true);
 		// Check and exit if there is an error saving the video
            	if(!output_cap.isOpened())
             	{
                     cout << "!!! Output video for NCBuff could not be opened"
 			<< endl;
             	}
-		else	// Push the frames from the buffer to the save file
+                // Push the frames from the buffer to the save file
+		else	
 		{
            	    while(!NCBuff.empty())
             	    {
@@ -236,19 +211,14 @@ int main()
 		output_cap.release();
 		count = 0;
 	    }
-
-            // Create name for saved video: "Year-Month-Day Hour_Minute_Second"
-            time(&rawtime);  
-            timeinfo = localtime(&rawtime);
-            strftime(buffer, 80, "%F %H_%M_%S", timeinfo);
-	    string new_id = string(buffer);
-            vid_id = path + new_id + ".avi";
-
+            
+            vid_id = create_id(path);
 	    VideoWriter output_cap(vid_id, 
                                    CV_FOURCC('M','J','P','G'),
                                    FPS, 
                                    Size(X_RESOLUTION, Y_RESOLUTION), 
                                    true);
+
 	    // Check and exit if there is an error saving the video
             if(!output_cap.isOpened())
             {
@@ -257,8 +227,10 @@ int main()
             }
 
 	    if(DEBUG)
-            { printf("number of frames saved = %d\r\n", int(frames.size())); }
-	    
+            {
+                cout << "Number of frames saved: " << frames.size() << endl; 
+            }
+
 	    // Push the frames from the buffer to the save file
             while(!frames.empty())
             {
@@ -271,10 +243,50 @@ int main()
 	    limit = PRETIME;
         }
     }
-
-    // Only exit the while loop if there is an error reading a frame
-    // Otherwise, exit code by using a keyboard interrup (Ctrl-C)
     cout << "!!! Video frame could not be read" << endl;
     input_cap.release();
 }
+
+
+
+/* FUNCTION DEFINITIONS
+ */
+
+/* Creates a new directory to store footage if it doesn't
+ * exist
+ */
+void create_directory(const char *path, struct stat &st) 
+{
+    if(stat(path, &st) != 0) 
+    {
+        if(errno == ENOENT) 
+        {
+            cout << "Creating a new video directory" << endl;
+            if(mkdir(path, S_IRWXU|S_IRWXG|S_IROTH|S_IXOTH) == 0)
+            { 
+                perror("mkdir"); 
+                }
+            }
+        }
+}
+
+/* Creates a new ID to name output video file
+ * in format "Year-Month-Day Hour_Minute_Second"
+ */
+string create_id(const char *path) 
+{
+    time_t rawtime;
+    struct tm *timeinfo;
+    char buffer[80];
+    string vid_id;
+
+    time(&rawtime);  
+    timeinfo = localtime(&rawtime);
+    strftime(buffer, 80, "%F %H_%M_%S", timeinfo);
+    string new_id = string(buffer);
+    vid_id = path + new_id + ".avi";
+
+    return vid_id;
+}
+
 //-----EOF-----
