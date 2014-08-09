@@ -11,6 +11,7 @@
 #include <queue>
 #include <deque>
 #include <string>
+#include <fstream>
 #include <iostream>
 #include <stdio.h>
 #include <termios.h>
@@ -18,11 +19,12 @@
 #include "BlackLib.h"
 #include "SensorSignal.h"
 
+using namespace cv;
+using namespace std;
 
 /*-------------------------------------------------
              PREPROCESSOR CONSTANTS
   -------------------------------------------------*/
-#define PRELIM           false
 #define DEBUG            true
 #define PRETIME          50
 #define POSTTIME         100
@@ -31,10 +33,8 @@
 #define Y_RESOLUTION     600
 #define WINDOW_SIZE      0
 #define GROUND_THRESHOLD 0
-#define TEST_THRESHOLD   1000
+#define TEST_THRESHOLD   700
 
-using namespace cv;
-using namespace std;
 
 
 /*-----------------------------------------------------
@@ -42,6 +42,9 @@ using namespace std;
   -----------------------------------------------------*/
 void create_directory(const char *path, struct stat &st);
 string create_id(const char *path, bool collision);
+string get_date();
+
+
 
 
 int main()
@@ -67,13 +70,12 @@ int main()
 
     BlackADC* test_adc = new BlackADC(AIN4);
     const char * path = "/home/ubuntu/AngryBirds/SDCard/videos/";
+    ofstream signals;
 
-
-  /*-----------------------------------------------
-     FRAME CAPTURE / STORAGE + COLLISION DETECTION
-    -----------------------------------------------*/
-
-    // Open video no.0 
+  /*---------------------------------------------------
+       FRAME CAPTURE / STORAGE + COLLISION DETECTION
+    ---------------------------------------------------*/
+    // Open video no.0
     VideoCapture input_cap(0);
 
     // Set (lower) the resolution for the webcam
@@ -86,8 +88,8 @@ int main()
         cout << "\nINPUT VIDEO COULD NOT BE OPENED\n" << endl;
         return -1;
     }
-    
-    // Read in each frame for storage and processing 
+
+    // Read in each frame for storage and processing
     while(input_cap.read(frame))
     {
         if(frames.size() >= limit)
@@ -100,16 +102,24 @@ int main()
             frames.push(frame.clone());
         }
 
+        // Open file to write signal data
+        signals.open("/home/ubuntu/AngryBirds/signals.txt",
+                      fstream::in  |
+                      fstream::out |
+                      fstream::app);
+
         // Basic test condition (for testing purposes - to be
         // changed). Flag if particular signal exceeds test threshold
-        // otherwise, proceed with continuous footage capture 
+        // otherwise, proceed with continuous footage capture
         if ((test_adc->getNumericValue() > TEST_THRESHOLD) ||
             (test_count >= max_count))
         {
             if (test_adc->getNumericValue() > TEST_THRESHOLD)
             {
                  detected = true;
-                             }
+                 signals << test_adc->getNumericValue();
+                 signals << "\n";
+             }
             save = true;
             limit = POSTTIME;
         }
@@ -121,7 +131,7 @@ int main()
             cout << "SAVE: " << save << endl;
         }
 
-        // Event detected, save queue to write to output file 
+        // Event detected, save queue to write to output file
         if((save) && (frames.size() >= limit))
         {
             if (DEBUG)
@@ -139,7 +149,7 @@ int main()
 
             if (DEBUG) {cout << "\nCREATING VIDEO\n" << endl;}
 
-            // Create the output destination 
+            // Create the output destination
             create_directory(path, st);
             vid_id = create_id(path, collision);
             VideoWriter output_cap(vid_id,
@@ -156,7 +166,7 @@ int main()
 
             if (DEBUG) {cout << "\nPUSHING FRAMES\n" << endl;}
 
-            // Write collision seqeuence to output file 
+            // Write collision seqeuence to output file
             while(!frames.empty())
             {
                 if (DEBUG) {cout << "WRITING FRAME: " << frame_count << endl;}
@@ -164,29 +174,30 @@ int main()
                 frames.pop();
                 frame_count += 1;
             }
+            
             frame_count = 0;
 
             if (DEBUG) {cout << "\nDONE WRITING\n" << endl;}
 
-            output_cap.release();
-            limit = PRETIME;
-            save = 0;
             test_count = 0;
             collision = false;
-        }
+            save = false;
+            limit = PRETIME;
+            output_cap.release();
+         }
         test_count++;
+        signals.close();
     }
-    // Exit 
     input_cap.release();
 }
 
 
 
-/*-----------------------------------------------------
-              FUNCTION DEFINITIONS
-  -----------------------------------------------------*/
-/* Creates a new directory to store footage if it doesn't
- * exist
+/*---------------------------------------------------------
+                  FUNCTION DEFINITIONS
+  ---------------------------------------------------------*/
+/* Description: Creates a new directory to store footage if
+ *              it doesn't exist
  */
 void create_directory(const char *path, struct stat &st)
 {
@@ -204,10 +215,13 @@ void create_directory(const char *path, struct stat &st)
 }
 
 
-/* Creates a new ID to name output video file
- * in format "Year-Month-Day Hour_Minute_Second"
+
+/* Description: Returns the current system time
+ * Note: time portion of datetime stamp is formated as
+ *       HOUR_MINUTE_SEC because colons are considered a invalid
+ *       character in naming files.
  */
-string create_id(const char *path, bool collision)
+string get_date()
 {
     time_t rawtime;
     struct tm *timeinfo;
@@ -216,21 +230,25 @@ string create_id(const char *path, bool collision)
     time(&rawtime);
     timeinfo = localtime(&rawtime);
     strftime(buffer, 80, "%F %H_%M_%S", timeinfo);
-    string new_id = string(buffer);
+    return(string(buffer));
+}
+
+
+
+/* Description: Creates a new ID to name output video file
+ *              in format "Year-Month-Day Hour_Minute_Second"
+ */
+string create_id(const char *path, bool collision)
+{
     if (collision)
     {
-        return (path + new_id + ".avi");
+        return (path + get_date() + ".avi");
     }
-    else
-    {
-        return( path + new_id + "_NC" + ".avi");
-    }
+    // No Collision
+    return( path + get_date() + "_NC" + ".avi");
 }
 
 //-----EOF-----
 
 
 
-
-
-             
