@@ -214,8 +214,6 @@ void create_directory(const char *path, struct stat &st)
     }
 }
 
-
-
 /* Description: Returns the current system time
  * Note: time portion of datetime stamp is formated as
  *       HOUR_MINUTE_SEC because colons are considered a invalid
@@ -232,8 +230,6 @@ string get_date()
     strftime(buffer, 80, "%F %H_%M_%S", timeinfo);
     return(string(buffer));
 }
-
-
 
 /* Description: Creates a new ID to name output video file
  *              in format "Year-Month-Day Hour_Minute_Second"
