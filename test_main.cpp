@@ -79,7 +79,6 @@ int main()
     bool        save            = false;
     bool        detected        = false;
     bool        collision       = false;
-   
     //Get the input from adc
     BlackADC *test_adc = new BlackADC(AIN4);
     //Path to save video files
@@ -141,34 +140,33 @@ int main()
 	    limit = POSTTIME;
         }
 
-        if (DEBUG) 
-        {
-            cout << "TEST_COUNT: " << test_count << endl;        
-            cout << "FRAME SIZE: " << frames.size() << endl;
-            cout << "SAVE: " << save << endl;   
-        }
+		#ifdef DEBUG
+        cout << "TEST_COUNT: " << test_count << endl;
+        cout << "FRAME SIZE: " << frames.size() << endl;
+        cout << "SAVE: " << save << endl;
+		#endif
 
-        // Event detected, save queue to write to output file 
-        if((save) && (frames.size() >= limit))
-        { 
-            if (DEBUG){
-                if (detected){
-                    cout << "\nEVENT TRIGGERED!\n" << endl;
-                    collision = true;
-                } else {
-                    cout << "\nSAVING SCHEDULED NON-COLLISON CLIP\n" << endl;
-                }
+        // Event detected, save queue to write to output file
+        if((save) && (frames.size() >= limit)){
+			#ifdef DEBUG
+            if (detected){
+            	cout << "\nEVENT TRIGGERED!\n" << endl;
+                collision = true;
+            } else {
+            	cout << "\nSAVING SCHEDULED NON-COLLISON CLIP\n" << endl;
             }
-
+			#endif
             if (detected) { collision = true; }
 
-            if (DEBUG) {cout << "\nCREATING VIDEO\n" << endl;}
+            #ifdef DEBUG
+			cout << "\nCREATING VIDEO\n" << endl;
+			#endif
 
-	    // Create the output destination. Check if directory
+	    	// Create the output destination. Check if directory
             // already exists before creating new directory
             create_directory(path, st);
             vid_id = create_id(path, collision);
-	    VideoWriter output_cap(vid_id,
+	    	VideoWriter output_cap(vid_id,
                                    CV_FOURCC('M','J','P','G'),
                                    FPS, 
                                    Size(X_RESOLUTION, Y_RESOLUTION), 
@@ -180,27 +178,30 @@ int main()
                 return -1;
             }
 
-            if (DEBUG) {cout << "\nPUSHING FRAMES\n" << endl;}
+            #ifdef DEBUG
+			cout << "\nPUSHING FRAMES\n" << endl;
+			#endif
 
             // Create the thread that will update the queue of video frames
             // while we are writing the current queue of frames to the ouput
             // file  
-	    //!!thread update_thread(update_frames, frames, frame, limit); 
+	    	//!!thread update_thread(update_frames, frames, frame, limit); 
             pthread_create(&update_thread,
                                         NULL,
                                         update_frames,
                                         (void*)&update_args);
 
             // Check whether we can create the new thread
-            if (!thread_ret)
-            {
+            if (!thread_ret){
                 cout << "\nERROR CREATING THREAD\n" << endl;
                 exit(EXIT_FAILURE);
             }
 
             // Write collision seqeuence to output file
             while(!frames.empty()){
-                if (DEBUG) {cout << "WRITING FRAME: " << frame_count << endl;}
+                #ifdef DEBUG
+				cout << "WRITING FRAME: " << frame_count << endl;
+				#endif DEBUG
                 output_cap.write(frames.front());
                 frames.pop();
                 frame_count += 1;
@@ -212,12 +213,14 @@ int main()
             pthread_join(update_thread, NULL);
             frame_count = 0;
 
-            if (DEBUG) {cout << "\nDONE WRITING\n" << endl;}
+            #ifdef DEBUG
+			cout << "\nDONE WRITING\n" << endl;
+			#endif
 
             test_count = 0;
             collision = false;
             save = false;
-	    limit = PRETIME;
+	    	limit = PRETIME;
             output_cap.release();
          }
         test_count++;
