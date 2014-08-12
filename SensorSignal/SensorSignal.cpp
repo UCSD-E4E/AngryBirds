@@ -5,7 +5,7 @@
  */
 
 #include "SensorSignal.h"
-#include "BlackLib.h"
+#include "../BlackLib/BlackLib.h"
 
 using namespace std;
 

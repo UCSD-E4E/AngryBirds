@@ -18,8 +18,8 @@
 #include <termios.h>
 #include <unistd.h>
 #include <pthread.h>
-#include "BlackLib.h"
-#include "SensorSignal.h"
+#include "BlackLib/BlackLib.h"
+#include "SensorSignal/SensorSignal.h"
 
 using namespace cv;
 using namespace std;
