@@ -153,7 +153,7 @@ int main(){
 			cout << "\nCREATING VIDEO\n" << endl;
 			#endif
 
-	    	// Create the output destination. Check if directory
+       	    // Create the output destination. Check if directory
             // already exists before creating new directory
             create_directory(path, st);
             vid_id = create_id(path, collision);
@@ -171,19 +171,22 @@ int main(){
 
             #ifdef DEBUG
 			cout << "\nPUSHING FRAMES\n" << endl;
-			#endif
+	 		#endif
 
             // Create the thread that will update the queue of video frames
             // while we are writing the current queue of frames to the ouput
             // file  
-	    	//!!thread update_thread(update_frames, frames, frame, limit); 
-            pthread_create(&update_thread,
+	    //!!thread update_thread(update_frames, frames, frame, limit); 
+            thread_ret = pthread_create(&update_thread,
                                         NULL,
                                         update_frames,
                                         (void*)&update_args);
 
+            cout << "\nTHREAD RET: \n" << thread_ret << endl;
+
             // Check whether we can create the new thread
-            if (!thread_ret){
+            if (thread_ret)
+            {
                 cout << "\nERROR CREATING THREAD\n" << endl;
                 exit(EXIT_FAILURE);
             }
@@ -191,8 +194,8 @@ int main(){
             // Write collision seqeuence to output file
             while(!frames.empty()){
                 #ifdef DEBUG
-				cout << "WRITING FRAME: " << frame_count << endl;
-				#endif
+			cout << "WRITING FRAME: " << frame_count << endl;
+		#endif
                 output_cap.write(frames.front());
                 frames.pop();
                 frame_count += 1;
