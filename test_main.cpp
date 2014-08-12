@@ -192,7 +192,7 @@ int main(){
             while(!frames.empty()){
                 #ifdef DEBUG
 				cout << "WRITING FRAME: " << frame_count << endl;
-				#endif DEBUG
+				#endif
                 output_cap.write(frames.front());
                 frames.pop();
                 frame_count += 1;

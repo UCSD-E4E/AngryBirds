@@ -6,6 +6,7 @@
 SDCard/videos/
 .nano*
 main
-testmain
+test_main
 cron
 analogstream
+signals.txt
