@@ -49,15 +49,13 @@ void *update_frames(void* update_args);
 string get_date();
 
 // Struct containing necessary values for update_frames function
-struct update_struct
-{
+struct update_struct{
     queue<Mat> frames;
     Mat frame;
     int limit;
 };
 
-int main()
-{
+int main(){
   /*---------------------------------------------------
           VARIABLE DECLARATIONS / INITIALIZATION
     ---------------------------------------------------*/
@@ -97,22 +95,17 @@ int main()
     input_cap.set(CV_CAP_PROP_FRAME_HEIGHT, Y_RESOLUTION);
 
     // Open the camera for capturing, if failure, terminate
-    if (!input_cap.isOpened())
-    {
+    if (!input_cap.isOpened()){
         cout << "\nINPUT VIDEO COULD NOT BE OPENED\n" << endl;
         return -1;
     }
 
     // Read in each frame for storage and processing 
-    while(input_cap.read(frame) )
-    {
-        if(frames.size() >= limit)
-        {
-	    frames.pop();
+    while(input_cap.read(frame) ){
+        if(frames.size() >= limit){
+	    	frames.pop();
             frames.push(frame.clone());
-        }
-        else
-        {
+        } else {
             frames.push(frame.clone());
         }
 
@@ -126,10 +119,8 @@ int main()
         // changed). Flag if particular signal exceeds test threshold
         // otherwise, proceed with continuous footage capture 
         if ((test_adc->getNumericValue() > TEST_THRESHOLD) ||
-            (test_count >= max_count))
-        {
-            if (test_adc->getNumericValue() > TEST_THRESHOLD) 
-            {
+            (test_count >= max_count)){
+            if (test_adc->getNumericValue() > TEST_THRESHOLD){
                  detected = true;
                  collision = true;
                  signals << ("\n" + get_date() + ":    ");
@@ -137,7 +128,7 @@ int main()
                  signals << "\n";
              }
             save = true;
-	    limit = POSTTIME;
+	    	limit = POSTTIME;
         }
 
 		#ifdef DEBUG
