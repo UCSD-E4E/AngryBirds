@@ -5,3 +5,7 @@
 .cache/
 SDCard/videos/
 .nano*
+main
+testmain
+cron
+analogstream
