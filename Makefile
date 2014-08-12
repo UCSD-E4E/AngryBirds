@@ -5,7 +5,7 @@
 #To compile the normal program, type in "make main"
 
 CXX = g++ -O2 -std=c++0x 
-CXXFLAGS
+CXXFLAGS = 
 CXXLIBS = -lpthread
 all: test testSig SensorSignal analog_stream test_main
 
