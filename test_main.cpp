@@ -44,23 +44,18 @@ using namespace std;
 /*-----------------------------------------------------
               FUNCTION PROTPOTYPES
   -----------------------------------------------------*/
+// Struct containing necessary values for update_frames function
 void create_directory(const char *path, struct stat &st);
 string create_id(const char *path, bool collision);
-void *write_frames(void* write_args);
+void *write_frames(void* qPtr);
 string get_date();
+queue<Mat>* createQ();
+void writeWithThread(queue<Mat>* q);
 
-// Struct containing necessary values for update_frames function
-struct write_struct{
-    queue<Mat> frames;
-    bool collision;
-    int frame_count;
-};
 // Path to save video files
 const char *path = "/home/ubuntu/AngryBirds/SDCard/videos/";
 // Struct required to check the status of video directory
 struct  stat st;
-
-
 
 
 int main(){
@@ -79,6 +74,7 @@ int main(){
     int         frame_count     = 0;         // For Testing Purposes
     int         test_count      = 0;         // For Testing Purposes
     int         max_count       = 50;        // For Testing Purposes
+	int			max_frames 		= 1024;
     int         limit           = PRETIME;
     bool        save            = false;
     bool        detected        = false;
@@ -87,19 +83,13 @@ int main(){
 
     // Get the input from adc
     BlackADC *test_adc = new BlackADC(AIN4);
-    // Declare an instance of the struct containing threading arguments
-    write_struct write_args;
-//    write_struct *write_args;
-//    write_args = (write_struct *)malloc(sizeof(write_struct));
 
   /*---------------------------------------------------
        FRAME CAPTURE/STORAGE + COLLISION DETECTION
     ---------------------------------------------------*/
-    // Open video capture device #0
     VideoCapture input_cap(0);
 
     // Set (lower) the resolution for the webcam
-    // since we don't need 1080p of nothing
     input_cap.set(CV_CAP_PROP_FRAME_WIDTH, X_RESOLUTION);
     input_cap.set(CV_CAP_PROP_FRAME_HEIGHT, Y_RESOLUTION);
 
@@ -109,93 +99,21 @@ int main(){
         return -1;
     }
 
-    // Read in each frame for storage and processing 
+	queue<Mat>* currQ = createQ();
+
+  /*---------------------------------------------------
+       					MAIN LOOP
+    ---------------------------------------------------*/
+
+    // Read in each frame for storage and processing
     while(input_cap.read(frame) ){
-        if(frames.size() >= limit){
-	    frames.pop();
-            frames.push(frame.clone());
-            test_count++;
-        } else {
-            frames.push(frame.clone());
-            test_count++;
-        }
-
-        // Open file to write signal data
-        signals.open("/home/ubuntu/AngryBirds/signals.txt",
-                      fstream::in  |
-                      fstream::out |
-                      fstream::app);
-
-        // Basic test condition (for testing purposes - to be 
-        // changed). Flag if particular signal exceeds test threshold
-        // otherwise, proceed with continuous footage capture 
-        if (
-	(test_adc->getNumericValue() > TEST_THRESHOLD) ||
-        (test_count >= max_count)){
-            if (test_adc->getNumericValue() > TEST_THRESHOLD){
-                 detected = true;
-                 collision = true;
-                 signals << ("\n" + get_date() + ":    ");
-                 signals << test_adc->getNumericValue();
-                 signals << "\n";
-             }
-             save = true;
-	     limit = POSTTIME;
-        }
-
-	#ifdef DEBUG
-        cout << "STORING FRAME: " << test_count << endl;
-        cout << "QUEUE SIZE: " << frames.size() << endl;
-        cout << "SAVE TRIGGERED: " << save << endl;
-        #endif
-
-        // Event detected, save queue to write to output file
-        if((save) && (frames.size() >= limit)){
-	    #ifdef DEBUG
-            if (detected){
-            	cout << "\nEVENT TRIGGERED!\n" << endl;
-                collision = true;
-            } else {
-            	cout << "\nSAVING SCHEDULED NON-COLLISON CLIP\n" << endl;
-            }
-	    #endif
-
-            if (detected) { collision = true; }
-
-            #ifdef DEBUG
-	    cout << "\nCREATING VIDEO\n" << endl;
- 	    cout << "\nADDING TO CUSTOM STRUCT\n" << endl;
-	    #endif
-            write_args.collision = collision;
-            write_args.frame_count = frame_count;
-            write_args.frames = frames;   
-/*
-            write_args->collision = collision;
-            write_args->frame_count = frame_count;
-            write_args->frames = frames;   
-*/
-            cout << "\nMEMBERS INITIALIZED\n" << endl;
-	    cout << "\nCREATING THREAD\n" << endl;
-            thread_ret = pthread_create(&write_thread, 
-                                        NULL, 
-                                        write_frames, 
-                                        (void*)&write_args);
-            if (thread_ret) 
-            {
-                cout << "\nERROR CREATING THREAD\n" << endl;
-                exit(EXIT_FAILURE);
-            } 
-            cout << "\nTHREAD CREATED\n" << endl;
-            collision = false;
-            save = false;
-	    limit = PRETIME;
-         }
-	 //We need to close the signals in order to write to the
-	 //file.
-         signals.close();
-//       pthread_exit(NULL);
-//         free(write_args);
-    }
+		if(currQ->size() < max_frames){
+			currQ->push(frame.clone());	//add frames
+		} else {
+			writeWithThread(currQ);		//pass off to thread
+			currQ = createQ(); 			//reset pointer
+		}
+    } //end of while
     input_cap.release();
 }
 
@@ -207,16 +125,12 @@ int main(){
 /* Description: Creates a new directory to store footage if
  *              it doesn't exist already
  */
-void create_directory(const char *path, struct stat &st) 
-{
-    if(stat(path, &st) != 0) 
-    {
-        if(errno == ENOENT) 
-        {
+void create_directory(const char *path, struct stat &st){
+    if(stat(path, &st) != 0){
+        if(errno == ENOENT){
             cout << "Creating a new video directory" << endl;
-            if(mkdir(path, S_IRWXU|S_IRWXG|S_IROTH|S_IXOTH) == 0)
-            { 
-                perror("mkdir"); 
+            if(mkdir(path, S_IRWXU|S_IRWXG|S_IROTH|S_IXOTH) == 0){
+                perror("mkdir");
             }
         }
     }
@@ -227,8 +141,7 @@ void create_directory(const char *path, struct stat &st)
  *       HOUR_MINUTE_SEC because colons are considered a invalid
  *       character in naming files.
  */
-string get_date()
-{
+string get_date(){
     time_t rawtime;
     struct tm *timeinfo;
     char buffer[80];
@@ -243,10 +156,8 @@ string get_date()
 /* Description: Creates a new ID to name output video file
  *              in format "Year-Month-Day Hour_Minute_Second"
  */
-string create_id(const char *path, bool collision)
-{
-    if (collision)
-    {
+string create_id(const char *path, bool collision){
+    if (collision){
         return (path + get_date() + ".avi");
     }
     // No Collision
@@ -256,77 +167,63 @@ string create_id(const char *path, bool collision)
 
 /* Description: 
  */
-void *write_frames(void *write_args)
-{
-    cout << "\nINSIDE WRITE FRAMES FUNCTION\n" << endl;
-
-    struct write_struct *args = (struct write_struct *) write_args;
-//    write_struct args = (write_struct)write_args;
-//    write_struct *args;
-/*
-    (args.frame_count) = (write_args->frame_count);
-    (args.collision) = (write_args->collision);
-    (args.frames) = (write_args->frames);
-
-    (args->frame_count) = (write_args.frame_count);
-    (args->collision) = (write_args.collision);
-    (args->frames) = (write_args.frames);
-*/
-    // Create the output destination. Check if directory
-    // already exists before creating new directory
+void *write_frames(void *qPtr){
+	queue<Mat>* q = (queue<Mat>*) qPtr;
     string vid_id;
     create_directory(path, st);
-    vid_id = create_id(path, args->collision);
+    vid_id = create_id(path, false);
     VideoWriter output_cap(vid_id,
                            CV_FOURCC('M','J','P','G'),
-                           FPS, 
-                           Size(X_RESOLUTION, Y_RESOLUTION), 
+                           FPS,
+                           Size(X_RESOLUTION, Y_RESOLUTION),
                            true);
 
-     if(!output_cap.isOpened()) 
-     {
-         cout << "\nOUTPUT VIDEO COULD NOT BE OPENED\n" << endl;
-         return NULL;
-     }
+    if(!output_cap.isOpened()){
+    	cout << "\nOUTPUT VIDEO COULD NOT BE OPENED\n" << endl;
+        return NULL;
+    }
 
-     #ifdef DEBUG
-     cout << "\nPUSHING FRAMES\n" << endl;
-     #endif
+    // Write collision seqeuence to output file
+    while(!q->empty()){
+        output_cap.write(q->front());
+		q->pop();
+    }
 
-/*
-     // Write collision seqeuence to output file
-     while(!(args.frames).empty()){
-         #ifdef DEBUG
-         cout << "WRITING FRAME: " << (args.frame_count) << endl;
-	 #endif
-         output_cap.write((args.frames).front());
-         (args.frames).pop();
-         (args.frame_count) += 1;
-     }
-*/
-     // Write collision seqeuence to output file
-     while(!(args->frames).empty()){
-         #ifdef DEBUG
-         cout << "WRITING FRAME: " << (args->frame_count) << endl;
-	 #endif
-         output_cap.write((args->frames).front());
-         (args->frames).pop();
-         (args->frame_count) += 1;
-     }
+    #ifdef DEBUG
+    cout << "\nDONE WRITING\n" << endl;
+    #endif
 
-     #ifdef DEBUG
-     cout << "\nDONE WRITING\n" << endl;
-     #endif
-     
-     output_cap.release();
-     cout << "\nRELEASED OUTPUT CAP\n" << endl;
+    output_cap.release();
+    #ifdef DEBUG
+    cout << "\nRELEASED OUTPUT CAP\n" << endl;
+    #endif
 
-//     free(args);
-//     cout << "\nFREED ARGS STRUCT\n" << endl;
+	delete q;
 
-     pthread_exit(NULL);
-     cout << "\nEXITED THREAD IN WRITE_FRAMES FUNCTION\n" << endl;
+    pthread_exit(NULL);
+    #ifdef DEBUG
+    cout  << "\nEXITED THREAD IN WRITE_FRAMES FUNCTION" << endl;
+    #endif
 }
+
+queue<Mat>* createQ(){
+	queue<Mat>* qPtr = new queue<Mat>;
+	return qPtr;
+}
+
+void writeWithThread(queue<Mat>* q){
+	//spawn off thread
+	pthread_t thread;
+	int retval = pthread_create(&thread,
+								NULL,
+								write_frames,
+								(void*)q);
+	if(retval){
+		cout << "ERROR CREATING THREAD" << endl;
+		exit(EXIT_FAILURE);
+	}
+}
+
 
 //-----EOF-----
 
