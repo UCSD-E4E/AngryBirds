@@ -6,15 +6,18 @@ CXX = g++ -O2 -std=c++0x
 CXXFLAGS = -g 
 CXXLIBS = -lpthread
 BLACK_OBJS = BlackLib/BlackLib.o
+SERVER_OBJS = Server/ServerSocket.o Socket/Socket.o
+CLIENT_OBJS = Client/ClientSocket.o Socket/Socket.o
 SENSOR_SIGNAL_OBJS = SensorSignal/SensorSignal.o
 OBJS= $(BLACK_OBJS) $(SENSOR_SIGNAL_OBJS)
-all: $(OBJS) analog_stream test_main cron
+all: $(OBJS) analog_stream test_main cron sendStop
 
 test_main: test_main.o $(BLACK_OBJS) $(SENSOR_SIGNAL_OBJS)
 	$(CXX) -o test_main test_main.o $(BLACK_OBJS) $(SENSOR_SIGNAL_OBJS) `pkg-config --libs opencv` $(CXXLIBS)
 	mv test_main bin
-compress_main: compress_main.o $(BLACK_OBJS) $(SENSOR_SIGNAL_OBJS)
-	$(CXX) -o compress_main compress_main.o $(BLACK_OBJS) $(SENSOR_SIGNAL_OBJS) `pkg-config --libs opencv` $(CXXLIBS)
+compress_main: compress_main.o $(BLACK_OBJS) $(SENSOR_SIGNAL_OBJS) $(SERVER_OBJS)
+	$(CXX) -o compress_main compress_main.o $(SERVER_OBJS) $(BLACK_OBJS) $(SENSOR_SIGNAL_OBJS) `pkg-config --libs opencv` $(CXXLIBS)
+	mv compress_main bin
 ship_main: ship_main.o $(BLACK_OBJS) $(SENSOR_SIGNAL_OBJS)
 	$(CXX) -o ship_main ship_main.o $(BLACK_OBJS) $(SENSOR_SIGNAL_OBJS) `pkg-config --libs opencv` $(CXXLIBS)
 	mv ship_main bin
@@ -23,10 +26,12 @@ analog_stream: analog_stream.cpp $(BLACK_OBJS)
 	mv analog_stream bin
 cron: cron/cron_test.cpp
 	$(MAKE) -C cron
-queue_test: queue_test.o 
-	$(CXX) -o queue_test queue_test.o `pkg-config --libs opencv` $(CXXLIBS)
-	mv cron bin
+sendStop: sendStop.o $(CLIENT_OBJS)
+	$(CXX) -o sendStop sendStop.o $(CLIENT_OBJS)
+	mv sendStop bin
 
+sendStop.o: sendStop.cpp
+	$(CXX) -c sendStop.cpp $(CXXLIBS)
 test_main.o: test_main.cpp
 	$(CXX) -c test_main.cpp $(CXXLIBS)
 compress_main.o: compress_main.cpp
@@ -37,8 +42,12 @@ BlackLib/BlackLib.o: BlackLib/BlackLib.cpp
 	$(MAKE) -C BlackLib
 SensorSignal/SensorSignal.o: SensorSignal/SensorSignal.cpp
 	$(MAKE) -C SensorSignal
-queue_test.o: queue_test.cpp
-	$(CXX) -c queue_test.cpp $(CXXLIBS)
+Server/ServerSocket.o: Server/ServerSocket.cpp
+	$(MAKE) -C Server
+Client/ClientSocket.o: Client/ClientSocket.cpp
+	$(MAKE) -C Client
+Socket/Socket.o: Socket/Socket.cpp
+	$(MAKE) -C Socket
 
 clean:
 	rm -rf *.o analog_stream test_main
@@ -46,3 +55,6 @@ clean:
 	$(MAKE) -C BlackLib clean
 	$(MAKE) -C cron clean
 	$(MAKE) -C SensorSignal clean
+	$(MAKE) -C Server clean
+	$(MAKE) -C Client clean
+	$(MAKE) -C Socket clean
