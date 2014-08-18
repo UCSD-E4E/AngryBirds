@@ -1,4 +1,4 @@
-/* Filename: ship_main.cpp
+/* Filename: compress_main.cpp
  * Author(s): Angela To
  * Description: Basic working code to test during 8/13/14 
  *              deployment
@@ -21,6 +21,8 @@
 #include <unistd.h>
 #include "BlackLib/BlackLib.h"
 #include "SensorSignal/SensorSignal.h"
+#include "Server/ServerSocket.h"
+#include "Socket/SocketException.h"
 
 using namespace cv;
 using namespace std;
@@ -28,7 +30,6 @@ using namespace std;
 /*-------------------------------------------------
              PREPROCESSOR CONSTANTS
   -------------------------------------------------*/
-#define DEBUG	           true
 #define PRETIME	           100	   
 #define POSTTIME           1000000
 #define FPS 	           20
@@ -36,9 +37,12 @@ using namespace std;
 #define Y_RESOLUTION       288    
 #define WINDOW_SIZE        0       
 #define GROUND_THRESHOLD   0  
-#define TEST_THRESHOLD     700 
-#define COMPRESSION_LEVEL  40
+#define TEST_THRESHOLD     50 
+#define COMPRESSION_LEVEL  60
+#define PORT_NUMBER 30000
 
+//Uncomment below to let us know video is storing
+#define DEBUG
 
 /*-----------------------------------------------------
               FUNCTION PROTPOTYPES
@@ -48,13 +52,12 @@ string create_vid_id(string path, bool collision);
 string create_im_id(string path, int im_count); 
 string create_dir_path(string path, string sub_dir_name);
 string get_date();
+void* listenForExit(void* i);
 
-
-
+bool stopSig = false;
 
 int main()
 {
-  cout << "\nTEST2\n" << endl;
   /*---------------------------------------------------
           VARIABLE DECLARATIONS / INITIALIZATION
     ---------------------------------------------------*/
@@ -67,20 +70,23 @@ int main()
     string  vid_id;               
     string  im_id;
     float   average_signal  = 0;
-    float   normal_signal   = 0;      
+    float   normal_signal   = 0;
+    int     adc             = 0;      
     int     dir_count       = 0;
     int     im_count        = 0;  
     int     frame_count     = 0;         // For Testing Purposes
     int     test_count      = 0;         // For Testing Purposes 
     int     max_count       = 50;        // For Testing Purposes
     int     limit           = PRETIME;  
+    int     rc;
     bool    save            = false;
     bool    detected        = false;
     bool    collision       = false;
 
-    BlackADC* test_adc = new BlackADC(AIN4);
     string path = "/home/ubuntu/AngryBirds/SDCard/videos/";
     ofstream signals;
+   
+    BlackADC* test_adc = new BlackADC(AIN4);
 
   /*---------------------------------------------------
        FRAME CAPTURE / STORAGE + COLLISION DETECTION
@@ -93,135 +99,66 @@ int main()
     input_cap.set(CV_CAP_PROP_FRAME_HEIGHT, Y_RESOLUTION);
 
     // Open the camera for capturing, if failure, terminate 
-    if (!input_cap.isOpened())
-    {
+    if (!input_cap.isOpened()) {
         cout << "\nINPUT VIDEO COULD NOT BE OPENED\n" << endl;
         return -1;
     }
 
-    // Read in each frame for storage and processing 
-    while(input_cap.read(frame))
-    {
-        if(frames.size() >= limit)
-        {
-	    frames.pop();
-            frames.push(frame.clone());
-        }
-        else
-        {
-            frames.push(frame.clone());
-        }
+    //Start listening for signal to stop
+    pthread_t exit_thread;
 
+    rc = pthread_create(&exit_thread, NULL, listenForExit, (void*) NULL);
+
+    if(rc){
+	cout << "ERROR: unable to create thread" << endl;
+    }
+
+  /*---------------------------------------------------
+                      MAIN LOOP                        
+    ---------------------------------------------------*/
+    // Read in each frame for storage and processing 
+    while(input_cap.read(frame) && !stopSig)
+    {
         // Open file to write signal data
-        signals.open("/home/ubuntu/AngryBirds/signals.txt", 
+        signals.open("/home/ubuntu/AngryBirds/SDCard/signals.txt", 
                       fstream::in  | 
                       fstream::out |
                       fstream::app); 
-
-        // Basic test condition (for testing purposes - to be 
-        // changed). Flag if particular signal exceeds test threshold
-        // otherwise, proceed with continuous footage capture 
-        if ((test_adc->getNumericValue() > TEST_THRESHOLD) ||
-            (test_count >= max_count))
-        {
-            if (test_adc->getNumericValue() > TEST_THRESHOLD) 
-            {
-                 detected = true;
-                 signals << test_adc->getNumericValue();
-                 signals << "\n";
-             }
-            save = true;
-	    limit = POSTTIME;
+ 
+        //
+        adc =  test_adc->getNumericValue(); 
+        if (adc >= TEST_THRESHOLD) {
+            signals << get_date() << ":    ";
+            signals << test_adc->getNumericValue();
+            signals << "\n";
         }
 
-        if (DEBUG) 
-        {
-            cout << "TEST_COUNT: " << test_count << endl;        
-            cout << "FRAME SIZE: " << frames.size() << endl;
-            cout << "SAVE: " << save << endl;   
+        // Create the (final) output destination - where all concatenated 
+        // clips will be stored
+        string path_name;
+        const char* converted_path;
+        path_name = create_dir_path(path, "NONE");
+        converted_path = path_name.c_str(); 
+        create_directory(converted_path, st);
+
+        // Write each frame into an (compressed) jpg img in 
+        //designated subdir.  
+        compress_params.push_back(CV_IMWRITE_JPEG_QUALITY);
+        compress_params.push_back(COMPRESSION_LEVEL);
+        im_id = create_im_id(converted_path, im_count);        
+        try {
+                imwrite(im_id, frame, compress_params);
+        } catch (runtime_error& e) {
+                cerr << "\nEXCEPTION CONVERTING IMAGES\n" << endl;
+                return 1;
         }
-	
-        // Event detected, save queue to write to output file 
-        if((save) && (frames.size() >= limit))
-        { 
-            if (DEBUG)
-            {
-                if (detected)
-                { 
-                    cout << "\nEVENT TRIGGERED!\n" << endl;
-                    //collision = true;
-                }
-                else 
-                {
-                    cout << "\nSAVING SCHEDULED NON-COLLISON CLIP\n" << endl;
-                }
-            }
-
-            if (detected) {collision = true; }
-
-            if (DEBUG) {cout << "\nCREATING VIDEO\n" << endl;}
-
-/**********************************************************************/
-/*-------------------------- VIDEO STORAGE ---------------------------*/
-/**********************************************************************/
-            // Create the (final) output destination - where all concatenated 
-            // clips will be stored
-            string path_name;
-            const char* converted_path;
-            path_name = create_dir_path(path, "NONE");
-            converted_path = path_name.c_str(); 
-            create_directory(converted_path, st);
-            // NOTE: create this directory for use by another script that
-            // will concatenate each subdir and put them in this dir
-
-            // Create the sub directory that will store all the 
-            // image files per collision event
-            string subdir_name;
-            string subdir_path;
-            const char* converted_subpath;
-            subdir_name = to_string(dir_count);
-            subdir_path = create_dir_path(path, subdir_name);
-            converted_subpath = subdir_path.c_str();
-            create_directory(converted_subpath, st);
-
-            // Write collision seqeuence to output file
-            while(!frames.empty())
-            {
-                if (DEBUG) {cout << "WRITING FRAME: " << frame_count << endl;}
-
-                // Write each frame into an (compressed) jpg img in 
-                //designated subdir.  
-                compress_params.push_back(CV_IMWRITE_JPEG_QUALITY);
-                compress_params.push_back(COMPRESSION_LEVEL);
-                im_count++;
-                im_id = create_im_id(converted_subpath, im_count);        
-                try {
-                   imwrite(im_id, frames.front(), compress_params);
-                }
-		catch (runtime_error& e) {
-                    cerr << "\nEXCEPTION CONVERTING IMAGES\n" << endl;
-                    return 1;
-                }
-		frames.pop();
-                frame_count += 1;
-            }
-            frame_count = 0;
-
-            if (DEBUG) {cout << "\nDONE WRITING\n" << endl;}
-
-            dir_count++;
-            im_count = 0;
-            test_count = 0;
-            collision = false;
-            save = false;
-	    limit = PRETIME;
-
-         }
-        test_count++;
+        im_count++;
         signals.close();
-    }
+	usleep(100); //check server
+	cout << im_count << endl;
+    } // End While
     input_cap.release();
-}
+} // End Main
 
 
 
@@ -283,7 +220,7 @@ string create_im_id(string path, int im_count)
 {
      string str_im_count;
      str_im_count = to_string(im_count);
-     return (path + "/" + get_date() + "__" + str_im_count + ".png");
+     return (path + "/" + get_date() + "__" + str_im_count + ".jpg");
 }
 
 
@@ -299,6 +236,28 @@ string create_vid_id(string path, bool collision)
     }
     // No Collision
     return( path + get_date() + "_NC" + ".avi");
+}
+
+void *listenForExit(void* i){
+    bool recievedData = false;
+    try {
+        ServerSocket server(PORT_NUMBER);
+
+        ServerSocket new_sock;
+        server.accept(new_sock);
+
+        while(true && !recievedData){
+            try {
+                string data;
+                new_sock >> data; //storing data recieved from socket
+                recievedData = true; //uncomment this for an infiite loop
+            } catch(SocketException&){
+            }
+        }
+        stopSig = true;
+    } catch(SocketException&){
+    }
+    pthread_exit(NULL);
 }
 
 //-----EOF-----
