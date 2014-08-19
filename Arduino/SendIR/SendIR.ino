@@ -16,7 +16,6 @@ void loop(){
   if (digitalRead(BttnPin)){
     Serial.println("Sending IR signal");
     SendIRCode();
-    delay(3*1000);  // wait one minute (60 seconds * 1000 milliseconds)  
   }
 
 }
@@ -51,7 +50,7 @@ void SendIRCode(){
   delayMicroseconds(3000);
   pulseIR(2000);
   delayMicroseconds(6000);
-  pulseIR(200);  
+  pulseIR(2000);  
   
   delay(65); // wait 65 milliseconds before sending it again  
   
@@ -63,7 +62,7 @@ void SendIRCode(){
   delayMicroseconds(3000);
   pulseIR(2000);
   delayMicroseconds(6000);
-  pulseIR(200);
+  pulseIR(2000);
 }
 
 void SendNikonCode() {
