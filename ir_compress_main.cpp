@@ -140,7 +140,7 @@ int main()
     // Read in each frame for storage and processing
     while(input_cap.read(frame) &&
           !stopSig              &&
-          isSignalRecieved(serial_in)) {
+          !isSignalRecieved(serial_in)) {
 /*
         // Listen for a signal to be sent from
         // recieving IR Arduino to indicate sleep time
