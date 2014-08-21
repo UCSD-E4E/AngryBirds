@@ -1,5 +1,8 @@
 /* Filename: compress_main.cpp
- * Author(s): Angela To
+ * Author(s): Angela To,
+ *            Dustin Mendoza,
+ *            Luke Deluccia, 
+ *            Ali Khomadari
  * Description: Basic working code to test during 8/13/14 
  *              deployment
  * Date: 8/8/14
@@ -19,6 +22,7 @@
 #include <stdio.h>
 #include <termios.h>
 #include <unistd.h>
+#include "serial/serialib.h"
 #include "BlackLib/BlackLib.h"
 #include "SensorSignal/SensorSignal.h"
 #include "Server/ServerSocket.h"
@@ -39,7 +43,9 @@ using namespace std;
 #define GROUND_THRESHOLD   0  
 #define TEST_THRESHOLD     50 
 #define COMPRESSION_LEVEL  60
-#define PORT_NUMBER 30000
+#define PORT_NUMBER        30000
+#define DEVICE_PORT        "/dev/tty02"
+#define BAUD_RATE          115200
 
 //Uncomment below to let us know video is storing
 #define DEBUG
@@ -69,6 +75,8 @@ int main()
     struct  stat st;               
     string  vid_id;               
     string  im_id;
+    string  path_name;
+    string  sleepKey; 
     float   average_signal  = 0;
     float   normal_signal   = 0;
     int     adc             = 0;      
@@ -82,11 +90,14 @@ int main()
     bool    save            = false;
     bool    detected        = false;
     bool    collision       = false;
+    bool isSleepTime;
+    const char* converted_path;
 
     string path = "/home/ubuntu/AngryBirds/SDCard/videos/";
     ofstream signals;
    
-    BlackADC* test_adc = new BlackADC(AIN4);
+    // Gets analog readings from adc pin 4
+    BlackADC *test_adc = new BlackADC(AIN4);
 
   /*---------------------------------------------------
        FRAME CAPTURE / STORAGE + COLLISION DETECTION
@@ -104,11 +115,9 @@ int main()
         return -1;
     }
 
-    //Start listening for signal to stop
+    // Start listening for signal to stop
     pthread_t exit_thread;
-
     rc = pthread_create(&exit_thread, NULL, listenForExit, (void*) NULL);
-
     if(rc){
 	cout << "ERROR: unable to create thread" << endl;
     }
@@ -117,15 +126,14 @@ int main()
                       MAIN LOOP                        
     ---------------------------------------------------*/
     // Read in each frame for storage and processing 
-    while(input_cap.read(frame) && !stopSig)
-    {
+    while(input_cap.read(frame) && !stopSig) {
         // Open file to write signal data
         signals.open("/home/ubuntu/AngryBirds/SDCard/signals.txt", 
                       fstream::in  | 
                       fstream::out |
                       fstream::app); 
  
-        //
+        // Output the analog readings to a signals.txt
         adc =  test_adc->getNumericValue(); 
         if (adc >= TEST_THRESHOLD) {
             signals << get_date() << ":    ";
@@ -135,8 +143,6 @@ int main()
 
         // Create the (final) output destination - where all concatenated 
         // clips will be stored
-        string path_name;
-        const char* converted_path;
         path_name = create_dir_path(path, "NONE");
         converted_path = path_name.c_str(); 
         create_directory(converted_path, st);
@@ -181,28 +187,24 @@ string create_dir_path(string path, string sub_dir_name) {
 /* Description: Creates a new directory to store footage if
  *              it doesn't exist
  */
-void create_directory(const char *path, struct stat &st) 
-{
-    if(stat(path, &st) != 0) 
-    {
-        if(errno == ENOENT) 
-        {
+void create_directory(const char *path, struct stat &st) {
+    if(stat(path, &st) != 0) {
+        if(errno == ENOENT) {
             cout << "Creating a new video directory" << endl;
-            if(mkdir(path, S_IRWXU|S_IRWXG|S_IROTH|S_IXOTH) == 0)
-            { 
+            if(mkdir(path, S_IRWXU|S_IRWXG|S_IROTH|S_IXOTH) == 0) { 
                 perror("mkdir"); 
             }
         }
     }
 }
 
+
 /* Description: Returns the current system time
  * Note: time portion of datetime stamp is formated as
  *       HOUR_MINUTE_SEC because colons are considered a invalid
  *       character in naming files. 
  */
-string get_date()
-{
+string get_date() {
     time_t rawtime;
     struct tm *timeinfo;
     char buffer[80];
@@ -213,23 +215,21 @@ string get_date()
     return(string(buffer));
 }
 
+
 /* Description: Creates a new ID to name output image file
  *              in format "Year-Month-Day Hour_Minute_Second__#"
  */
-string create_im_id(string path, int im_count) 
-{
+string create_im_id(string path, int im_count) {
      string str_im_count;
      str_im_count = to_string(im_count);
      return (path + "/" + get_date() + "__" + str_im_count + ".jpg");
 }
 
 
-
 /* Description: Creates a new ID to name output video file
  *              in format "Year-Month-Day Hour_Minute_Second"
  */
-string create_vid_id(string path, bool collision) 
-{
+string create_vid_id(string path, bool collision) {
     if (collision) 
     {
         return (path + get_date() + ".avi");
@@ -238,6 +238,9 @@ string create_vid_id(string path, bool collision)
     return( path + get_date() + "_NC" + ".avi");
 }
 
+
+/*
+ */
 void *listenForExit(void* i){
     bool recievedData = false;
     try {

@@ -11,8 +11,8 @@
 #include <Wire.h>
 #include "RTClib.h"
 
-#define rxPin 2 // RX pin for serial
-#define txPin 3 // tx pin for serial
+#define rxPin 2   // RX pin for serial
+#define txPin 3   // tx pin for serial
 #define sclPin A5 // SCL pin for RTC
 #define sdaPin A4 // SDA pin for RTC
  
