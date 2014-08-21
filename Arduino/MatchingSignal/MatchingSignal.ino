@@ -5,9 +5,9 @@
 // Digital pin #2 is the same as Pin D2 see
 // http://arduino.cc/en/Hacking/PinMapping168 for the 'raw' pin mapping
 #define IRpin_PIN      PIND
-#define IRpin          11
+#define IRpin          2
 
-#define DEBUG
+//#define DEBUG
 
 // the maximum pulse we'll listen for - 65 milliseconds is a long time
 #define MAXPULSE 65000
@@ -27,9 +27,14 @@ uint8_t currentpulse = 0; // index for pulses we're storing
 
 #include "ircodes.h"
 
+int serial_out_pin = 4;
+
 void setup(void) {
   Serial.begin(9600);
+  // Initialize pin 12 as output
+  pinMode(serial_out_pin, OUTPUT);
   Serial.println("Ready to decode IR!");
+  
 }
 
 void loop(void) {
@@ -41,14 +46,17 @@ void loop(void) {
   Serial.print(numberpulses);
   Serial.println("-pulse long IR signal");
  
-  if(IRcompare(numberpulses, DCode, sizeof(DCode)/4)){
-    Serial.println("DCODE");
+  if(IRcompare(numberpulses, DDCode, sizeof(DCode)/4)){
+    Serial.println("DDCODE");
+    digitalWrite(serial_out_pin, HIGH);
+    delay(500);
   }
   #ifdef DEBUG
   printpulses();
   #endif
   Serial.println();
-  delay(500);
+  digitalWrite(serial_out_pin, LOW);
+  //delay(500);
 }
 
 //KGO: added size of compare sample. Only compare the minimum of the two
@@ -173,4 +181,3 @@ void printpulses(void) {
   Serial.print(pulses[currentpulse-1][1] * RESOLUTION / 10, DEC);
   Serial.print(", 0};");
 }
-
