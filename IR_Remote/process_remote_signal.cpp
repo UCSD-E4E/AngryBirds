@@ -12,22 +12,17 @@ void flash_led(BlackGPIO *led_out, int num_times);
 
 int main() {
    // Change/Check GPIO Pin #
-   BlackGPIO *serial_in = new BlackGPIO(GPIO_3, input);  // P9_18
-   BlackGPIO *led_out = new BlackGPIO(GPIO_68, output);  // P8_10
-   string serial_msg;
+   BlackGPIO *ir_in = new BlackGPIO(GPIO_68, input);       // P8_10
+   //BlackGPIO *led_out = new BlackGPIO(GPIO_68, output);  // P8_10
 
    while (1) {
-       // -------------  DETECT IR REMOTE SIGNAL --------- //
-       serial_msg = serial_in->getValue();
-       if (serial_in->fail()) {
+       if (ir_in->fail()) {
            cout << "ERROR" << endl;
        }
-       cout << "GPIO pin value: (SERIAL)" << serial_msg << endl;
-       // If msg matches *something* we've recieved the GO signal 
-       // Turn on LED light to indicate success
-       if (serial_in->isHigh()) {
-           flash_led(led_out, 5);
-           // DO SOMETHING HERE
+       cout << "GPIO pin value: " << ir_in->getValue() << endl;
+       if (ir_in->isHigh()) {
+           //flash_led(led_out, 5);
+           cout << "SIGNAL HEARD!" << endl;
        }
     } 
 }

@@ -3,7 +3,7 @@
 # E4E + REU
 
 CXX = g++ -O2 -std=c++0x 
-CXXFLAGS = -g 
+CXXFLAGS =  
 CXXLIBS = -lpthread
 BLACK_OBJS = BlackLib/BlackLib.o
 SERVER_OBJS = Server/ServerSocket.o Socket/Socket.o
@@ -21,7 +21,7 @@ compress_main: compress_main.o $(BLACK_OBJS) $(SENSOR_SIGNAL_OBJS) $(SERVER_OBJS
 	mv compress_main bin
 ir_compress_main: ir_compress_main.o $(BLACK_OBJS) $(SENSOR_SIGNAL_OBJS) $(SERVER_OBJS) $(SERIAL_OBJS)
 	$(CXX) -o ir_compress_main ir_compress_main.o $(SERVER_OBJS) $(BLACK_OBJS) $(SENSOR_SIGNAL_OBJS) $(SERIAL_OBJS) `pkg-config --libs opencv` $(CXXLIBS)
-	mv compress_main bin
+	mv ir_compress_main bin
 ship_main: ship_main.o $(BLACK_OBJS) $(SENSOR_SIGNAL_OBJS)
 	$(CXX) -o ship_main ship_main.o $(BLACK_OBJS) $(SENSOR_SIGNAL_OBJS) `pkg-config --libs opencv` $(CXXLIBS)
 	mv ship_main bin
