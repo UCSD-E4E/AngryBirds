@@ -210,7 +210,7 @@ string get_date() {
 
     time(&rawtime);  
     timeinfo = localtime(&rawtime);
-    strftime(buffer, 80, "%F %H_%M_%S", timeinfo);
+    strftime(buffer, 80, "%F__%H_%M_%S", timeinfo);
     return(string(buffer));
 }
 
