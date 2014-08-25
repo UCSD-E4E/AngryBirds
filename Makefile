@@ -11,7 +11,7 @@ CLIENT_OBJS = Client/ClientSocket.o Socket/Socket.o
 SENSOR_SIGNAL_OBJS = SensorSignal/SensorSignal.o
 SERIAL_OBJS = serial/serialib.o
 OBJS= $(BLACK_OBJS) $(SENSOR_SIGNAL_OBJS) $(SERIAL_OBJS)
-all: $(OBJS) analog_stream test_main cron sendStop
+all: $(OBJS) analog_stream cron sendStop ir_compress_main 
 
 test_main: test_main.o $(BLACK_OBJS) $(SENSOR_SIGNAL_OBJS)
 	$(CXX) -o test_main test_main.o $(BLACK_OBJS) $(SENSOR_SIGNAL_OBJS) `pkg-config --libs opencv` $(CXXLIBS)
