@@ -1,10 +1,5 @@
 /* Filename: ir_compress_main.cpp  
- * Author(s): Angela To,
- *            Dustin Mendoza,
- *            Luke Deluccia,
- *            Ali Khomadari
- * Description: Basic working code to test during 8/13/14
- *              deployment
+ * Description: 
  * Date: 8/8/14
  */
 
@@ -65,7 +60,6 @@ void processSignal();
 void flashLed(int numTimes);
 void openSerialPort(int Ret, serialib LS);
 void closeSerialPort(serialib LS);
-//bool isSignalRecieved();
 bool isSignalRecieved(BlackGPIO *ir_in);
 
 bool stopSig = false;
@@ -236,7 +230,7 @@ string get_date() {
 
     time(&rawtime);
     timeinfo = localtime(&rawtime);
-    strftime(buffer, 80, "%F %H_%M_%S", timeinfo);
+    strftime(buffer, 80, "%F__%H_%M_%S", timeinfo);
     return(string(buffer));
 }
 
@@ -291,9 +285,6 @@ void *listenForExit(void* i){
 
 /* Returns true if an IR signal has been recieved
  */
-//bool isSignalRecieved() {
-//    BlackGPIO *serial_in = new BlackGPIO(GPIO_63, input);  // P8_20
-
 bool isSignalRecieved(BlackGPIO *ir_in) {
     if (ir_in->fail()) {
         cout << "ERROR" << endl;
