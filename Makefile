@@ -11,7 +11,7 @@ CLIENT_OBJS = Client/ClientSocket.o Socket/Socket.o
 SENSOR_SIGNAL_OBJS = SensorSignal/SensorSignal.o
 SERIAL_OBJS = serial/serialib.o
 OBJS= $(BLACK_OBJS) $(SENSOR_SIGNAL_OBJS) $(SERIAL_OBJS)
-all: $(OBJS) analog_stream cron sendStop ir_compress_main 
+all: $(OBJS) analog_stream cron sendStop ir_compress_main ir_concat_main 
 
 test_main: test_main.o $(BLACK_OBJS) $(SENSOR_SIGNAL_OBJS)
 	$(CXX) -o test_main test_main.o $(BLACK_OBJS) $(SENSOR_SIGNAL_OBJS) `pkg-config --libs opencv` $(CXXLIBS)
@@ -22,6 +22,9 @@ compress_main: compress_main.o $(BLACK_OBJS) $(SENSOR_SIGNAL_OBJS) $(SERVER_OBJS
 ir_compress_main: ir_compress_main.o $(BLACK_OBJS) $(SENSOR_SIGNAL_OBJS) $(SERVER_OBJS) $(SERIAL_OBJS)
 	$(CXX) -o ir_compress_main ir_compress_main.o $(SERVER_OBJS) $(BLACK_OBJS) $(SENSOR_SIGNAL_OBJS) $(SERIAL_OBJS) `pkg-config --libs opencv` $(CXXLIBS)
 	mv ir_compress_main bin
+ir_concat_main: ir_concat_main.o $(BLACK_OBJS) $(SENSOR_SIGNAL_OBJS) $(SERVER_OBJS) $(SERIAL_OBJS)
+	$(CXX) -o ir_concat_main ir_concat_main.o $(SERVER_OBJS) $(BLACK_OBJS) $(SENSOR_SIGNAL_OBJS) $(SERIAL_OBJS) `pkg-config --libs opencv` $(CXXLIBS)
+	mv ir_concat_main bin
 ship_main: ship_main.o $(BLACK_OBJS) $(SENSOR_SIGNAL_OBJS)
 	$(CXX) -o ship_main ship_main.o $(BLACK_OBJS) $(SENSOR_SIGNAL_OBJS) `pkg-config --libs opencv` $(CXXLIBS)
 	mv ship_main bin
@@ -44,6 +47,8 @@ compress_main.o: compress_main.cpp
 	$(CXX) -c compress_main.cpp $(CXXLIBS)
 ir_compress_main.o: ir_compress_main.cpp
 	$(CXX) -c ir_compress_main.cpp $(CXXLIBS)
+ir_concat_main.o: ir_concat_main.cpp
+	$(CXX) -c ir_concat_main.cpp $(CXXLIBS)
 ship_main.o: ship_main.cpp
 	$(CXX) -c ship_main.cpp $(CXXLIBS)
 BlackLib/BlackLib.o: BlackLib/BlackLib.cpp
