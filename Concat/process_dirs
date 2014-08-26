@@ -11,7 +11,7 @@ find ${path:?} -type d | while read dir; do
      echo "$now"
      id="/home/ubuntu/AngryBirds/SDCard/videos/$now.avi"
      echo "$id"
-     sudo avconv -r 20 -i "$dir"/img_000.jpg -b:v 1000k "$id"
+     sudo avconv -f image2 -r 20 -i "$dir"/%03d.jpg -b:v 1000k "$id"
      sleep 1 # Sleep to prevent files from being overwritten (same timestamp name)
      echo
 done
