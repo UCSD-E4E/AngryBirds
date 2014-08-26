@@ -115,12 +115,6 @@ int main()
     input_cap.set(CV_CAP_PROP_FRAME_WIDTH, X_RESOLUTION);
     input_cap.set(CV_CAP_PROP_FRAME_HEIGHT, Y_RESOLUTION);
 
-    // Open the camera for capturing, if failure, terminate
-    if (!input_cap.isOpened()) {
-        cout << "\nINPUT VIDEO COULD NOT BE OPENED\n" << endl;
-        return -1;
-    }
-
     cout << "\nCREATING MAIN IMAGES DIRECTORY\n" << endl;
     // Create the (final) output destination - where all concatenated
     // clips will be stored ("Images" directory)
@@ -140,77 +134,85 @@ int main()
   /*---------------------------------------------------
                         MAIN LOOP
     ---------------------------------------------------*/
-/*
-    // Read in each frame for storage and processing
-    while(input_cap.read(frame) &&
-          !stopSig              &&
-          !isSignalRecieved(ir_in)) {
-*/
-    while(input_cap.read(frame) && !stopSig) {
-
-        // Open file to write signal data
-        signals.open("/home/ubuntu/AngryBirds/SDCard/signals.txt",
-                      fstream::in  |
-                      fstream::out |
-                      fstream::app);
-
-        // Create the initial buffer of frames
-        if(frames.size() >= limit) {
-	    frames.pop();
-            frames.push(frame.clone());
+    while(true){
+        // Check that the camera is open for capturing, 
+        // if failure, terminate
+        if (!input_cap.isOpened()) {
+            cout << "\nINPUT VIDEO COULD NOT BE OPENED\n" << endl;
+            return -1;
         }
-        else {
-            frames.push(frame.clone());
-        }
+	if(!isSignalRecieved(ir_in)) {
+	        cout << "\nRECORDING\n" << endl;
+		if(input_cap.read(frame) && !stopSig) {
+		     // Open file to write signal data
+		     signals.open("/home/ubuntu/AngryBirds/SDCard/signals.txt",
+                          fstream::in  |
+                          fstream::out |
+                          fstream::app);
 
-        // Output the analog readings to a signals.txt
-        adc =  test_adc->getNumericValue();
-//        if (adc >= TEST_THRESHOLD) {
-        if (isSignalRecieved(ir_in)) {
-            cout << "\nEVENT DETECTED\n" << endl;
-            signals << get_date() << ":    " << adc << endl;
-            detected = true;
-            limit = POSTTIME;
-        }
+                    // Create the initial buffer of frames
+                    if(frames.size() >= limit) {
+	            frames.pop();
+                    frames.push(frame.clone());
+                    } else {
+                        frames.push(frame.clone());
+                    }
 
-        if (detected && frames.size() >= limit) {
-            cout << "\nCREATING SUBDIR TO STORE THIS COLLISION\n" << endl;
-            // Create the sub directory that will store all the 
-            // image files per collision event
-            subdir_name = to_string(dir_count);
-            subdir_path = create_dir_path(img_path, subdir_name);
-            converted_subpath = subdir_path.c_str();
-            create_directory(converted_subpath, st);
-            cout << "\nDONE CREATING THIS SUBDIR\n" << endl;
+       		    // Output the analog readings to a signals.txt
+        	    adc =  test_adc->getNumericValue();
+        	    if (adc >= TEST_THRESHOLD) {
+        	        cout << "\nEVENT DETECTED\n" << endl;
+        	        signals << get_date() << ":    " << adc << endl;
+        	        detected = true;
+             	        limit = POSTTIME;
+        	    }
 
-            // Write each frame into an (compressed) jpg img in
-            //designated subdir.
-            compress_params.push_back(CV_IMWRITE_JPEG_QUALITY);
-            compress_params.push_back(COMPRESSION_LEVEL);
+        	    if (detected && frames.size() >= limit) {
+            	        cout << "\nCREATING SUBDIR TO STORE THIS COLLISION\n" << endl;
+            	        // Create the sub directory that will store all the 
+            	        // image files per collision event
+            	        subdir_name = to_string(dir_count);
+                        subdir_path = create_dir_path(img_path, subdir_name);
+                        converted_subpath = subdir_path.c_str();
+            	        create_directory(converted_subpath, st);
+            	        cout << "\nDONE CREATING THIS SUBDIR\n" << endl;
 
-            // Write the collision sequence into the output sub dir
-            cout << "\nWRITING THE COLLISION SEQUENCE\n" << endl;
-            frame_count = 0;
-            im_count = 0;
-            while (!frames.empty()) {
-                im_id = create_im_id(converted_subpath, im_count, false);
-                try {
-                    cout << "\nWRITING FRAME NUMBER: " << frame_count << endl;
-		    imwrite(im_id, frames.front(), compress_params);
-                } catch (runtime_error& e) {
-                    cerr << "\nEXCEPTION CONVERTING IMAGES\n" << endl;
-                    return 1;
-                }
-                frames.pop();
-                im_count++;
-                frame_count++;
-            }
-            dir_count++;
-            detected = false;
-            signals.close();
-            usleep(100); //check server
-        }
-        signals.close();
+            	        // Write each frame into an (compressed) jpg img in
+            	        //designated subdir.
+            	        compress_params.push_back(CV_IMWRITE_JPEG_QUALITY);
+            	        compress_params.push_back(COMPRESSION_LEVEL);
+
+            	        // Write the collision sequence into the output sub dir
+            	        cout << "\nWRITING THE COLLISION SEQUENCE\n" << endl;
+            	        frame_count = 0;
+            	        im_count = 0;
+                        while (!frames.empty()) {
+                    	    im_id = create_im_id(converted_subpath, im_count, false);
+                	    try {
+                    	        cout << "\nWRITING FRAME NUMBER: " << frame_count << endl;
+		                imwrite(im_id, frames.front(), compress_params);
+                	    } catch (runtime_error& e) {
+                    	        cerr << "\nEXCEPTION CONVERTING IMAGES\n" << endl;
+                    	        return 1;
+                	    }
+                            frames.pop();
+                            im_count++;
+                            frame_count++;
+                        }
+                        dir_count++;
+                        detected = false;
+                        signals.close();
+                        usleep(100); //check server
+                    }
+                    signals.close();
+	        } else {
+		    break; //break out of infinite while and do cleanup
+	        }
+	    } else {
+                input_cap.release(); // Close the camera
+	        sleep(120); // Sleep for 30 minutes // 2 Minutes Test
+                input_cap.open(0); // Re-open the camera
+	}
     } // End While
     input_cap.release();
     cout << "\nSTOPPED\n" << endl;
