@@ -44,6 +44,8 @@ using namespace std;
 
 //Uncomment below to let us know video is storing
 #define DEBUG
+//Uncomment below to let us analyze the sensor analog stream
+#define ANALOG
 
 /*-----------------------------------------------------
               FUNCTION PROTPOTYPES
@@ -88,7 +90,8 @@ int main()
     const char* converted_path;
     const char* converted_subpath;
 
-    string path = "/home/ubuntu/AngryBirds/SDCard/videos/";
+    string img_path = "/home/ubuntu/AngryBirds/SDCard/images/";
+    string vid_path = "/home/ubuntu/AngryBirds/SDCard/videos/";
     ofstream signals;
 
     // Gets analog readings from adc pin 4
@@ -118,10 +121,18 @@ int main()
         return -1;
     }
 
+    cout << "\nCREATING MAIN IMAGES DIRECTORY\n" << endl;
+    // Create the (final) output destination - where all concatenated
+    // clips will be stored ("Images" directory)
+    path_name = create_dir_path(img_path, "NONE");
+    converted_path = path_name.c_str();
+    create_directory(converted_path, st);
+    cout << "\nDONE CREATING MAIN VIDEOS DIRECTORY\n" << endl;
+
     cout << "\nCREATING MAIN VIDEOS DIRECTORY\n" << endl;
     // Create the (final) output destination - where all concatenated
     // clips will be stored ("videos" directory)
-    path_name = create_dir_path(path, "NONE");
+    path_name = create_dir_path(vid_path, "NONE");
     converted_path = path_name.c_str();
     create_directory(converted_path, st);
     cout << "\nDONE CREATING MAIN VIDEOS DIRECTORY\n" << endl;
@@ -167,7 +178,7 @@ int main()
             // Create the sub directory that will store all the 
             // image files per collision event
             subdir_name = to_string(dir_count);
-            subdir_path = create_dir_path(path, subdir_name);
+            subdir_path = create_dir_path(img_path, subdir_name);
             converted_subpath = subdir_path.c_str();
             create_directory(converted_subpath, st);
             cout << "\nDONE CREATING THIS SUBDIR\n" << endl;
@@ -263,18 +274,17 @@ string create_im_id(string path, int im_count, bool is_dated) {
      string abs_path;
      str_im_count = to_string(im_count);
      if (is_dated) {
-         abs_path = path + "/" + get_date() + "__" + str_im_count + ".jpg";
-         return abs_path;
+         return(path + "/" + get_date() + "__" + str_im_count + ".jpg");
      } else {
          // Need to find a better way of doing this later ...
+         // (For a 35 sec video - need 700 frames)
          if (im_count < 10) {
              str_im_count = string(1, '0').append(str_im_count);
          }
          if (im_count < 100) {
              str_im_count = string(1, '0').append(str_im_count);
          }
-         abs_path = path + "/" + "img_" + str_im_count + ".jpg";
-         return abs_path;
+         return(path + "/" + "img_" + str_im_count + ".jpg");
      }
 }
 
@@ -321,13 +331,13 @@ void *listenForExit(void* i){
  */
 bool isSignalRecieved(BlackGPIO *ir_in) {
     if (ir_in->fail()) {
-        cout << "ERROR" << endl;
+        cout << "ERROR!" << endl;
     }
     cout << "GPIO pin value: " << ir_in->getValue() << endl;
     if (ir_in->isHigh()) {
         // Flash the LED to indicate signal has been recieved
         flashLed(5);
-        cout << "SIGNAL HEARD!" << endl;
+        cout << "SIGNAL HEARD! - STOP SCRIPT" << endl;
         return true;
     } else {
         return false;
@@ -340,7 +350,7 @@ bool isSignalRecieved(BlackGPIO *ir_in) {
 void flashLed(int numTimes) {
     // Set up the output pin for controlling the LED light
     BlackGPIO *ledOut = new BlackGPIO(GPIO_30, output);  // P9_11
-/*
+
     int i = 0;
     while (i < numTimes) {
         ledOut->setValue(high);
@@ -349,7 +359,7 @@ void flashLed(int numTimes) {
         sleep(1);
         i++;
     }
-*/
+
 }
 
 
