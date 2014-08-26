@@ -11,7 +11,8 @@ int main()
     BlackADC *adc = new BlackADC(AIN4); // Pin 33 
     float analog; 
     float converted;
-
+    int signal_count = 0;
+   
     while (1) 
     {
         if (adc->fail()) 
@@ -22,15 +23,15 @@ int main()
         analog = adc->getNumericValue();
         converted = adc->getParsedValue(dap3);      
 
-        cout << "analog_input: " << analog << endl;
-        cout << "converted voltage: " << converted << endl; 
-        cout << "\n" << endl;
+//        cout << "analog_input: " << analog << endl;
+//        cout << "converted voltage: " << converted << endl; 
+//        cout << "\n" << endl;
 
-        if (analog > 60 ){
-            sleep(3);
+        if (analog > 80 ){
+              cout << "\nSIGNAL DETECTED " << signal_count << endl;
+              signal_count++;
         }
 
-        //sleep(0.5);
     }
 }
 
