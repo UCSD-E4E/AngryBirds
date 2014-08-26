@@ -13,7 +13,6 @@ void flash_led(BlackGPIO *led_out, int num_times);
 int main() {
    // Change/Check GPIO Pin #
    BlackGPIO *ir_in = new BlackGPIO(GPIO_68, input);       // P8_10
-   //BlackGPIO *led_out = new BlackGPIO(GPIO_68, output);  // P8_10
 
    while (1) {
        if (ir_in->fail()) {
@@ -21,7 +20,6 @@ int main() {
        }
        cout << "GPIO pin value: " << ir_in->getValue() << endl;
        if (ir_in->isHigh()) {
-           //flash_led(led_out, 5);
            cout << "SIGNAL HEARD!" << endl;
        }
     } 

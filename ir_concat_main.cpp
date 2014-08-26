@@ -284,7 +284,7 @@ string create_im_id(string path, int im_count, bool is_dated) {
          if (im_count < 100) {
              str_im_count = string(1, '0').append(str_im_count);
          }
-         return(path + "/" + "img_" + str_im_count + ".jpg");
+         return(path + "/" + str_im_count + ".jpg");
      }
 }
 
