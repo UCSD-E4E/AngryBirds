@@ -20,7 +20,6 @@
 #include <termios.h>
 #include <unistd.h>
 #include "BlackLib/BlackLib.h"
-#include "SensorSignal/SensorSignal.h"
 
 using namespace cv;
 using namespace std;

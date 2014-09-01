@@ -13,7 +13,6 @@
 #include <termios.h>
 #include <unistd.h>
 #include "BlackLib.h"
-#include "SensorSignal.h"
 
 using namespace cv;
 using namespace std;

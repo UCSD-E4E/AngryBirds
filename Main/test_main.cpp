@@ -21,7 +21,6 @@
 #include <unistd.h>
 #include <pthread.h>
 #include "BlackLib/BlackLib.h"
-#include "SensorSignal/SensorSignal.h"
 
 using namespace cv;
 using namespace std;

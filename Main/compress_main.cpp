@@ -24,7 +24,6 @@
 #include <unistd.h>
 #include "serial/serialib.h"
 #include "BlackLib/BlackLib.h"
-#include "SensorSignal/SensorSignal.h"
 #include "Server/ServerSocket.h"
 #include "Socket/SocketException.h"
 
