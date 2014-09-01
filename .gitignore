@@ -3,10 +3,10 @@
 .sudo_as*
 *.o
 .cache/
-SDCard/videos/
+SDCard/*
 .nano*
 main
 test_main
 analogstream
 signals.txt
-bin/
+bin/*
