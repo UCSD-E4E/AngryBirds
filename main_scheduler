@@ -1,7 +1,0 @@
-#! /bin/bash
-
-#./ship_main&
-#PID=$!
-#echo $PID
-#sleep 10       # 14400 SEC = 4 HRS
-#kill $PID
