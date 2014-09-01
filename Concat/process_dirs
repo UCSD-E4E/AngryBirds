@@ -3,6 +3,7 @@
 path=/home/ubuntu/AngryBirds/SDCard/images/
 script=/home/ubuntu/AngryBirds/Concat/concat_test.sh
 
+# Concat all the image files into video clips
 echo "ATTEMPTING TO CONCAT IMAGES INTO AVI ..."
 find ${path:?} -type d | while read dir; do
      echo "PROCESSING DIRECTORY: $dir"
@@ -12,7 +13,6 @@ find ${path:?} -type d | while read dir; do
      id="/home/ubuntu/AngryBirds/SDCard/videos/$now.avi"
      echo "$id"
      sudo avconv -f image2 -r 20 -i "$dir"/%03d.jpg -b:v 1000k "$id"
-     sleep 1 # Sleep to prevent files from being overwritten (same timestamp name)
      echo
 done
 echo "DONE"
@@ -24,6 +24,7 @@ ls /home/ubuntu/AngryBirds/SDCard/videos/
 echo "DONE"
 echo
 
+# Keep the videos, remove the images
 echo "REMOVING IMAGES DIR AND ITS CONTENTS ..."
 sudo rm -r /home/ubuntu/AngryBirds/SDCard/images/
 echo "DONE"
