@@ -1,5 +1,6 @@
 Angry Birds
 =========
+For more information, please visit our [wiki](https://github.com/UCSD-E4E/AngryBirds/wiki) page! 
 
 Core Contributors
 =================
