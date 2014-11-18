@@ -1,8 +1,3 @@
-/* Filename: ir_concat_main.cpp  
- * Description: 
- * Date: 8/8/14
- */
-
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include <time.h>
@@ -28,14 +23,13 @@ using namespace std;
 /*-------------------------------------------------
              PREPROCESSOR CONSTANTS
   -------------------------------------------------*/
-#define PRETIME            100
-#define POSTTIME           200
+#define PRETIME            200 // 10 sec bf collision
+#define POSTTIME           600 // 20 sec af collision
 #define FPS                20
 #define X_RESOLUTION       352
 #define Y_RESOLUTION       288
 #define WINDOW_SIZE        0
-#define GROUND_THRESHOLD   0
-#define TEST_THRESHOLD     1000
+#define TEST_THRESHOLD     1000 // signal threshold  ... tbd from site tests
 #define COMPRESSION_LEVEL  60
 #define PORT_NUMBER        30000
 #define DEVICE_PORT        "/dev/tty02"
@@ -74,8 +68,6 @@ int main()
     string  path_name;
     string  subdir_name;
     string  subdir_path;
-    float   average_signal  = 0;
-    float   normal_signal   = 0;
     int     adc             = 0;
     int     dir_count       = 0;
     int     im_count        = 0;
@@ -85,7 +77,6 @@ int main()
     bool    save            = false;
     bool    detected        = false;
     bool    collision       = false;
-    bool    isSleepTime;
     const char* converted_path;
     const char* converted_subpath;
 
@@ -97,6 +88,7 @@ int main()
     BlackADC *test_adc = new BlackADC(AIN4); 	       // P9_34/33
     BlackGPIO *ir_in = new BlackGPIO(GPIO_68, input);  // P8_10
 
+// int tester = 0; for testing ...can delete
   /*---------------------------------------------------
          FRAME CAPTURE / STORAGE + COLLISION DETECTION
     ---------------------------------------------------*/
@@ -160,11 +152,14 @@ int main()
        		    // Output the analog readings to a signals.txt
         	    adc =  test_adc->getNumericValue();
         	    if (adc >= TEST_THRESHOLD) {
+//                    if (tester == 500) { // For testing  ... can delete
+//			tester = 0;
         	        cout << "\nEVENT DETECTED\n" << endl;
         	        signals << get_date() << ":    " << adc << endl;
         	        detected = true;
              	        limit = POSTTIME;
         	    }
+//                    tester++;
 
         	    if (detected && frames.size() >= limit) {
             	        cout << "\nCREATING SUBDIR TO STORE THIS COLLISION\n" << endl;

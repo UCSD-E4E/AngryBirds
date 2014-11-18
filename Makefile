@@ -11,7 +11,8 @@ all: $(OBJS) main
 
 main: main.o $(BLACK_OBJS) $(SERVER_OBJS) $(SERIAL_OBJS)
 	$(CXX) -o main main.o $(SERVER_OBJS) $(BLACK_OBJS) $(SERIAL_OBJS) `pkg-config --libs opencv` $(CXXLIBS)
-	mv main bin
+sendStop: sendStop.o $(CLIENT_OBJS)
+	$(CXX) -o sendStop sendStop.o $(CLIENT_OBJS)
 serialib.o: serial/serialib.cpp
 	$(CXX) -c serial/serialib.cpp $(CXXLIBS)
 BlackLib/BlackLib.o: BlackLib/BlackLib.cpp
